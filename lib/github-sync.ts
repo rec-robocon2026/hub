@@ -26,13 +26,15 @@ export async function syncSeason(supabase: SupabaseClient, seasonId: string, ori
     const { data: subs } = await supabase.from("subsystems").select("*").in("robot_id", robotList.map((r) => r.id)).returns<Subsystem[]>();
     const { data: mods } = await supabase.from("modules").select("*").in("subsystem_id", (subs ?? []).map((s) => s.id)).returns<Module[]>();
 
+    // A repo typed in by hand may not exist yet: create anything that belongs to our org.
     let repo = season.repo;
     let created = false;
-    if (!repo) {
-      const r = await ensureRepo(seasonRepoName(season.prefix), `Robocon ${season.year} — ${robotList.map((x) => `${x.code} ${x.codename}`).join(", ")}`);
-      repo = r.repo;
+    const [owner, name] = repo?.split("/") ?? [];
+    if (!repo || owner.toLowerCase() === githubOrg().toLowerCase()) {
+      const r = await ensureRepo(name || seasonRepoName(season.prefix), `Robocon ${season.year} — ${robotList.map((x) => `${x.code} ${x.codename}`).join(", ")}`);
       created = r.created;
-      await supabase.from("seasons").update({ repo }).eq("id", season.id);
+      if (r.repo !== repo) await supabase.from("seasons").update({ repo: r.repo }).eq("id", season.id);
+      repo = r.repo;
     }
 
     const origins = await carriedLabels(supabase, (mods ?? []).map((m) => m.carried_from));

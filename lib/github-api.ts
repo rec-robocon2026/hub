@@ -51,13 +51,30 @@ export async function ensureRepo(name: string, description: string) {
       delete_branch_on_merge: true,
     }),
   });
+  if (res.status === 422)
+    throw new GithubError(
+      `${full} already exists but the token can't see it — set the token's Repository access to "All repositories"`,
+    );
+  if (res.status === 403 || res.status === 404)
+    throw new GithubError(
+      `Can't create repos in ${githubOrg()}: the token needs Resource owner = ${githubOrg()} and Administration: Read and write — and an org owner may still need to approve it (Org → Settings → Personal access tokens → Pending requests)`,
+    );
   if (res.status !== 201) throw explain(`Creating ${full}`, res.status, res.data);
   return { repo: full, created: true };
 }
 
 /** One commit on the default branch adding the files that don't exist yet. Existing files are never overwritten. */
 export async function commitFiles(repo: string, files: RepoFile[], message: string) {
-  const info = await gh<{ default_branch: string }>(`/repos/${repo}`);
+  // Right after creation GitHub can briefly 404 the new repo.
+  let info = await gh<{ default_branch: string }>(`/repos/${repo}`);
+  for (let i = 0; info.status === 404 && i < 4; i++) {
+    await new Promise((r) => setTimeout(r, 1000));
+    info = await gh(`/repos/${repo}`);
+  }
+  if (info.status === 404)
+    throw new GithubError(
+      `${repo} doesn't exist, or the token can't see it — check the repo name on the season page, and that the token's Repository access is "All repositories"`,
+    );
   if (info.status !== 200) throw explain(`Reading ${repo}`, info.status, info.data);
   const branch = info.data.default_branch;
 
