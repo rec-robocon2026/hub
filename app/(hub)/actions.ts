@@ -466,6 +466,15 @@ export async function approveMember(fd: FormData) {
   revalidatePath("/", "layout");
 }
 
+/** Leads only. Removes the person from the hub; they can sign in again and ask, arriving as pending. */
+export async function removeMember(fd: FormData) {
+  const { supabase, member } = await requireLead();
+  const id = str(fd, "member_id");
+  if (id === member.id) return; // never yourself — ask another lead
+  await supabase.from("members").delete().eq("id", id);
+  revalidatePath("/", "layout");
+}
+
 export async function rejectMember(fd: FormData) {
   const { supabase } = await requireLead();
   await supabase.from("members").delete().eq("id", str(fd, "member_id")).eq("role", "pending");

@@ -162,3 +162,6 @@ a.gap-item:hover { background: color-mix(in srgb, var(--color-accent) 6%, transp
   .page, .skeleton { animation: none; }
   .nav-progress, .btn { transition: none; }
 }
+.remove-member > summary { list-style: none; cursor: pointer; }
+.remove-member > summary::-webkit-details-marker { display: none; }
+.remove-member[open] { max-width: 260px; }

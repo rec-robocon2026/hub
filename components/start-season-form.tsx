@@ -6,7 +6,7 @@ import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { Box, Tag } from "@/components/ui";
 
 type LibraryItem = { id: string; name: string; slug: string; code: string; origin: string; note: string | null };
-type RobotRow = { code: string; codename: string; description: string };
+type RobotRow = { key: number; codename: string; description: string };
 
 export function StartSeasonForm({
   defaultYear,
@@ -22,10 +22,12 @@ export function StartSeasonForm({
   library: LibraryItem[];
 }) {
   const [year, setYear] = useState(String(defaultYear));
-  const [robots, setRobots] = useState<RobotRow[]>([
-    { code: "R1", codename: "", description: "" },
-    { code: "R2", codename: "", description: "" },
+  // Codes come from position, so removing R2 turns R3 into R2 — no gaps.
+  const [rows, setRows] = useState<RobotRow[]>([
+    { key: 1, codename: "", description: "" },
+    { key: 2, codename: "", description: "" },
   ]);
+  const robots = rows.map((r, i) => ({ ...r, code: `R${i + 1}` }));
   const [rnd, setRnd] = useState(true);
   const [picked, setPicked] = useState<string[]>(codes.map((c) => c.code));
   const [carry, setCarry] = useState<string[]>([]);
@@ -37,7 +39,9 @@ export function StartSeasonForm({
 
   const toggle = (list: string[], set: (v: string[]) => void, v: string) =>
     set(list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
-  const setRobot = (i: number, patch: Partial<RobotRow>) => setRobots(robots.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const setRobot = (i: number, patch: Partial<RobotRow>) => setRows(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const removeRobot = (i: number) => setRows(rows.filter((_, j) => j !== i));
+  const addRobot = () => setRows([...rows, { key: Math.max(0, ...rows.map((r) => r.key)) + 1, codename: "", description: "" }]);
 
   const folders = [...named.map((r) => r.code), ...(rnd ? ["RD"] : [])];
   const tree =
@@ -85,7 +89,7 @@ export function StartSeasonForm({
           <p className="text-muted small">Leave a codename blank to skip that robot. More can be added later from the season page.</p>
           <div className="stack">
             {robots.map((r, i) => (
-              <div key={r.code} style={{ display: "grid", gridTemplateColumns: "44px minmax(0, 180px) minmax(0, 1fr)", gap: 10, alignItems: "center" }}>
+              <div key={r.key} style={{ display: "grid", gridTemplateColumns: "44px minmax(0, 180px) minmax(0, 1fr) auto", gap: 10, alignItems: "center" }}>
                 <input type="hidden" name="robot_code" value={r.code} />
                 <span className="mono accent-text">{r.code}</span>
                 <input
@@ -97,10 +101,19 @@ export function StartSeasonForm({
                   required={i === 0}
                 />
                 <input name="robot_description" className="input" placeholder="one line — e.g. ring thrower, mecanum base" value={r.description} onChange={(e) => setRobot(i, { description: e.target.value })} />
+                <button
+                  type="button"
+                  className="btn btn-ghost"
+                  style={{ fontSize: 12.5, visibility: robots.length > 1 ? "visible" : "hidden" }}
+                  onClick={() => removeRobot(i)}
+                  aria-label={`Remove ${r.code}`}
+                >
+                  Remove
+                </button>
               </div>
             ))}
             {robots.length < 9 && (
-              <button type="button" className="btn btn-ghost" style={{ justifySelf: "start" }} onClick={() => setRobots([...robots, { code: `R${robots.length + 1}`, codename: "", description: "" }])}>
+              <button type="button" className="btn btn-ghost" style={{ justifySelf: "start" }} onClick={addRobot}>
                 + another robot
               </button>
             )}

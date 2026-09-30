@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { approveMember, rejectMember, updateMember } from "@/app/(hub)/actions";
+import { approveMember, rejectMember, removeMember, updateMember } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { Box, Empty, PageHead, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
@@ -126,11 +126,25 @@ function EditableRow({ m, canSetRole, isMe }: { m: Member; canSetRole: boolean; 
       </td>
       <td>
         {/* the inputs in this row attach via form=, so the row stays a table row */}
-        <ActionForm id={formId} action={updateMember} className="inline-form">
-          <input type="hidden" name="member_id" value={m.id} />
-          <Submit>Save</Submit>
-          <FormNotice />
-        </ActionForm>
+        <div className="row" style={{ flexWrap: "nowrap" }}>
+          <ActionForm id={formId} action={updateMember} className="inline-form">
+            <input type="hidden" name="member_id" value={m.id} />
+            <Submit>Save</Submit>
+            <FormNotice />
+          </ActionForm>
+          {canSetRole && !isMe && (
+            <details className="remove-member">
+              <summary className="btn btn-ghost" style={{ fontSize: 12.5 }}>Remove</summary>
+              <form action={removeMember} className="stack" style={{ gap: 6, marginTop: 6 }}>
+                <input type="hidden" name="member_id" value={m.id} />
+                <span className="text-muted small">
+                  {displayName(m)} loses access now. Things they added stay, shown as added by “someone”. For graduates, Alum keeps their name.
+                </span>
+                <button className="btn btn-secondary" type="submit" style={{ fontSize: 12.5 }}>Remove {displayName(m)}</button>
+              </form>
+            </details>
+          )}
+        </div>
       </td>
     </tr>
   );
