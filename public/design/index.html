@@ -1,0 +1,1844 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="_ds/industry-d3bc1d9f-7055-4e2e-a34c-7f5a449b4d3b/styles.css">
+<script src="_ds/industry-d3bc1d9f-7055-4e2e-a34c-7f5a449b4d3b/_ds_bundle.js"></script>
+<style>
+  body { margin: 0; }
+  a { color: var(--color-accent-700); }
+  a:hover { color: var(--color-accent-900); }
+</style>
+</helmet>
+
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#5980a6"/><g fill="none" stroke="#f2f2f3" stroke-width="2.5"><rect x="30" y="30" width="40" height="40"/><path d="M30 44h40M44 30v40"/></g><g fill="#f2f2f3"><rect x="27" y="27" width="6" height="1.6"/><rect x="29.2" y="24.8" width="1.6" height="6"/><rect x="67" y="27" width="6" height="1.6"/><rect x="69.2" y="24.8" width="1.6" height="6"/><rect x="27" y="71.4" width="6" height="1.6"/><rect x="29.2" y="69.2" width="1.6" height="6"/><rect x="67" y="71.4" width="6" height="1.6"/><rect x="69.2" y="69.2" width="1.6" height="6"/></g></svg></template>
+
+<div style="min-height: 100vh; display: flex; flex-direction: column">
+
+  <div class="nav" style="display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 14px 28px; border-bottom: 1px solid var(--color-divider)">
+    <div class="nav-brand" style="font-family: var(--font-heading); font-size: 21px; letter-spacing: 0.02em; cursor: pointer" onClick="{{ goHome }}">REC ROBOCON <span class="text-muted" style="font-weight: 400">/ archive</span></div>
+    <div style="display: flex; gap: 4px; flex-wrap: wrap">
+      <button class="btn btn-ghost" onClick="{{ goHome }}" style="font-size: 13px">Home</button>
+      <button class="btn btn-ghost" onClick="{{ goRobot }}" style="font-size: 13px">Season 2026</button>
+      <button class="btn btn-ghost" onClick="{{ goModules }}" style="font-size: 13px">Modules</button>
+      <button class="btn btn-ghost" onClick="{{ goProg }}" style="font-size: 13px">Programming</button>
+      <button class="btn btn-ghost" onClick="{{ goElec }}" style="font-size: 13px">Electronics</button>
+      <button class="btn btn-ghost" onClick="{{ goMech }}" style="font-size: 13px">Mechanical</button>
+      <button class="btn btn-ghost" onClick="{{ goStart }}" style="font-size: 13px">Quick start</button>
+      <button class="btn btn-ghost" onClick="{{ goNew }}" style="font-size: 13px">Start a new season</button>
+    </div>
+    <div style="flex: 1; min-width: 120px"></div>
+    <input class="input" placeholder="Search everything — RC24-DRV, encoder, gripper…" style="width: 280px; max-width: 100%; font-size: 13px">
+    <div style="display: flex; align-items: center; gap: 8px">
+      <span class="tag tag-accent" style="font-size: 11px">LEAD</span>
+      <span class="text-muted" style="font-size: 13px">Aiman · batch 25/27</span>
+    </div>
+  </div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: stretch">
+        <div class="blueprint duotone" style="min-height: 340px; background: repeating-linear-gradient(135deg, var(--color-neutral-200) 0 9px, var(--color-neutral-300) 9px 18px); display: flex; align-items: flex-end; padding: 22px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: ui-monospace, monospace; font-size: 12px; background: var(--color-bg); padding: 5px 9px">hero photo — this season's robot</div>
+        </div>
+        <div style="display: flex; flex-direction: column; justify-content: center; gap: 4px">
+          <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase">Season 2026 · active</div>
+          <h1 style="font-size: clamp(40px, 5vw, 60px); margin: 0 0 4px">KANCIL</h1>
+          <p style="font-size: 17px; max-width: 46ch; margin: 0 0 20px">Autonomous ring-throwing robot. Four-wheel mecanum base, twin-stage arm, vision-assisted alignment.</p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 22px">
+            <button class="btn btn-primary blueprint" onClick="{{ goRobot }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Open robot
+            </button>
+            <button class="btn btn-secondary" onClick="{{ goModules }}">Browse modules</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; border-top: 1px solid var(--color-divider); padding-top: 16px">
+            <div><div style="font-family: var(--font-heading); font-size: 32px; line-height: 1">8</div><div class="text-muted" style="font-size: 12.5px">subsystems</div></div>
+            <div><div style="font-family: var(--font-heading); font-size: 32px; line-height: 1">147</div><div class="text-muted" style="font-size: 12.5px">items indexed</div></div>
+            <div><div style="font-family: var(--font-heading); font-size: 32px; line-height: 1">62</div><div class="text-muted" style="font-size: 12.5px">as-built</div></div>
+            <div><div style="font-family: var(--font-heading); font-size: 32px; line-height: 1">30</div><div class="text-muted" style="font-size: 12.5px">members</div></div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin: 44px 0 6px">Your department</h3>
+      <p class="text-muted" style="font-size: 13.5px; margin-bottom: 18px">Everything you need is on one page, including adding your own work. Start here.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 18px">
+        <div class="card blueprint" style="padding: 20px; cursor: pointer" onClick="{{ goProg }}">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Programming</div>
+          <div class="card-title" style="margin-bottom: 4px">Firmware, vision, simulation</div>
+          <div class="card-body">Open a repo in VS Code, propose a change, run Gazebo, get a lead's approval.</div>
+        </div>
+        <div class="card blueprint" style="padding: 20px; cursor: pointer" onClick="{{ goElec }}">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Electronics</div>
+          <div class="card-title" style="margin-bottom: 4px">Schematics, PCB, releases</div>
+          <div class="card-body">Board-by-board revisions, the fab-order checklist, and where the Gerbers live.</div>
+        </div>
+        <div class="card blueprint" style="padding: 20px; cursor: pointer" onClick="{{ goMech }}">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Mechanical</div>
+          <div class="card-title" style="margin-bottom: 4px">CAD, drives, as-built</div>
+          <div class="card-body">Register a master on the drive, drop the STEP and drawing, mark what was actually built.</div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 28px; margin-top: 44px">
+        <div>
+          <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 16px">
+            <h3 style="margin: 0">Recent activity</h3>
+            <span class="text-muted" style="font-size: 13px">last 7 days</span>
+          </div>
+          <table class="table" style="width: 100%">
+            <thead><tr><th style="text-align: left">Item</th><th style="text-align: left">Action</th><th style="text-align: left">By</th><th style="text-align: left">When</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ activity }}" as="row" hint-placeholder-count="6">
+                <tr>
+                  <td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">{{ row.name }}</span><br><span class="text-muted" style="font-size: 12.5px">{{ row.title }}</span></td>
+                  <td>{{ row.action }}</td>
+                  <td>{{ row.who }}</td>
+                  <td class="text-muted">{{ row.when }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+
+          <h3 style="margin: 40px 0 16px">Past seasons</h3>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px">
+            <sc-for list="{{ seasons }}" as="s" hint-placeholder-count="4">
+              <div class="card blueprint" style="padding: 16px; cursor: pointer">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div class="card-kicker">{{ s.year }}</div>
+                <div class="card-title" style="margin-bottom: 4px">{{ s.robot }}</div>
+                <div class="text-muted" style="font-size: 12.5px">{{ s.count }} items · {{ s.result }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin: 0 0 16px">Needs attention</h3>
+          <div style="display: grid; gap: 12px; margin-bottom: 36px">
+            <sc-for list="{{ gaps }}" as="g" hint-placeholder-count="3">
+              <div class="blueprint" style="padding: 14px 16px">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-size: 14px; margin-bottom: 2px">{{ g.text }}</div>
+                <div class="text-muted" style="font-size: 12.5px">{{ g.detail }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <h3 style="margin: 0 0 16px">Drives</h3>
+          <div style="display: grid; gap: 12px; margin-bottom: 36px">
+            <div class="blueprint" style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div><div style="font-family: ui-monospace, monospace; font-size: 13px">DRIVE-A</div><div class="text-muted" style="font-size: 12.5px">custodian: Aiman</div></div>
+              <span class="tag tag-accent" style="font-size: 11px">MIRRORED 02 SEP</span>
+            </div>
+            <div class="blueprint" style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div><div style="font-family: ui-monospace, monospace; font-size: 13px">DRIVE-B</div><div class="text-muted" style="font-size: 12.5px">custodian: Hui Xin</div></div>
+              <span class="tag tag-outline" style="font-size: 11px">MIRRORED 02 SEP</span>
+            </div>
+          </div>
+
+          <div class="blueprint" style="padding: 18px 20px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 6px">New this year?</h5>
+            <p style="margin: 0 0 12px; font-size: 14px">Ten minutes to understand where everything lives and how to name a file.</p>
+            <button class="btn btn-secondary btn-block" onClick="{{ goStart }}">Read the quick start</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isRobot }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-size: 13px; margin-bottom: 6px">Seasons / 2026</div>
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 8px">
+        <h1 style="margin: 0; font-size: clamp(34px, 4.5vw, 52px)">KANCIL <span class="text-muted" style="font-weight: 400; font-size: 0.5em">RC26</span></h1>
+        <div style="display: flex; gap: 8px">
+          <span class="tag tag-accent">ACTIVE SEASON</span>
+          <span class="tag tag-outline">BUILD PHASE · WK 14</span>
+        </div>
+      </div>
+      <p class="text-muted" style="max-width: 70ch; margin-bottom: 32px">Every subsystem below is owned by a named lead. Click through for the files, the wiring, the code and the tuning notes. Items marked as-built are what physically exists on the robot today, which is not always the latest design.</p>
+
+      <h3 style="margin: 0 0 16px">Subsystems</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 44px">
+        <sc-for list="{{ subsystems }}" as="sub" hint-placeholder-count="8">
+          <div class="card blueprint" style="padding: 18px; cursor: pointer" onClick="{{ goSub }}">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px">
+              <div style="font-family: ui-monospace, monospace; font-size: 12.5px; color: var(--color-accent-700)">{{ sub.code }}</div>
+              <div class="text-muted" style="font-size: 12px">{{ sub.count }} items</div>
+            </div>
+            <div class="card-title" style="margin-bottom: 4px">{{ sub.name }}</div>
+            <div class="text-muted" style="font-size: 12.5px; margin-bottom: 10px">lead: {{ sub.lead }}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap">
+              <sc-for list="{{ sub.disciplines }}" as="d" hint-placeholder-count="2">
+                <span class="tag tag-neutral" style="font-size: 10.5px">{{ d }}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="margin: 0 0 16px">Where this robot lives</h3>
+      <table class="table" style="width: 100%">
+        <thead><tr><th style="text-align: left">Kind</th><th style="text-align: left">Location</th><th style="text-align: left">Reference</th></tr></thead>
+        <tbody>
+          <tr><td>Everything in the repo</td><td>GitHub — rec-robocon org</td><td><a href="vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git">rc26-robot — open in VS Code</a></td></tr>
+          <tr><td>CAD masters</td><td>DRIVE-A / DRIVE-B</td><td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">/RC26/CAD/</span></td></tr>
+          <tr><td>STEP + PDF exports</td><td>Committed per module</td><td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">modules/*/mech/</span></td></tr>
+          <tr><td>Schematics + PCB</td><td>Committed per module</td><td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">modules/*/hardware/</span></td></tr>
+          <tr><td>Competition rules</td><td>Hub storage</td><td><a href="#">Robocon 2026 rulebook v2.pdf</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isSub }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-size: 13px; margin-bottom: 6px">Seasons / 2026 / KANCIL / Drivetrain</div>
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 28px">
+        <div>
+          <div style="font-family: ui-monospace, monospace; font-size: 14px; color: var(--color-accent-700); margin-bottom: 2px">RC26-DRV</div>
+          <h1 style="margin: 0; font-size: clamp(32px, 4vw, 46px)">Drivetrain</h1>
+          <div class="text-muted" style="font-size: 14px">lead: Hui Xin · 24 items · 11 as-built</div>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap">
+          <button class="btn btn-secondary" onClick="{{ goMech }}">Add mechanical</button>
+          <button class="btn btn-secondary" onClick="{{ goElec }}">Add electronics</button>
+          <button class="btn btn-secondary" onClick="{{ goProg }}">Add code</button>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 320px); gap: 28px">
+        <div>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px">
+            <span class="tag tag-accent" style="font-size: 11px">ALL 24</span>
+            <span class="tag tag-outline" style="font-size: 11px">CAD 9</span>
+            <span class="tag tag-outline" style="font-size: 11px">ELEC 5</span>
+            <span class="tag tag-outline" style="font-size: 11px">CODE 4</span>
+            <span class="tag tag-outline" style="font-size: 11px">NOTES 6</span>
+          </div>
+          <table class="table" style="width: 100%">
+            <thead><tr><th style="text-align: left">Name</th><th style="text-align: left">Kind</th><th style="text-align: left">Status</th><th style="text-align: left">Where</th><th style="text-align: left">Rev</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ assets }}" as="a" hint-placeholder-count="8">
+                <tr>
+                  <td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">{{ a.name }}</span><br><span class="text-muted" style="font-size: 12.5px">{{ a.title }}</span></td>
+                  <td class="text-muted" style="font-size: 13px">{{ a.kind }}</td>
+                  <td>{{ a.statusTag }}</td>
+                  <td style="font-size: 12.5px">{{ a.where }}</td>
+                  <td class="text-muted" style="font-size: 13px">{{ a.rev }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+
+          <h4 style="margin: 36px 0 12px">Comments on RC26-DRV-WHEELMOD-A-v3</h4>
+          <div style="display: grid; gap: 12px">
+            <div class="blueprint" style="padding: 14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-size: 13px; margin-bottom: 4px"><strong>Hui Xin</strong> <span class="text-muted">· 28 Aug</span></div>
+              <p style="margin: 0; font-size: 14px">v3 is the one we machined. v4 exists in CAD but the bearing bore was never cut — do not build from v4 without checking with me.</p>
+            </div>
+            <div class="blueprint" style="padding: 14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-size: 13px; margin-bottom: 4px"><strong>Aiman</strong> <span class="text-muted">· 30 Aug</span></div>
+              <p style="margin: 0; font-size: 14px">Marked v3 as-built and v4 as design. Also copied the RC24 hub design notes into the reuse library, they solved this exact bore problem two years ago.</p>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 style="margin: 0 0 12px">Version history</h4>
+          <div style="display: grid; gap: 0; margin-bottom: 32px">
+            <sc-for list="{{ versions }}" as="v" hint-placeholder-count="4">
+              <div style="display: grid; grid-template-columns: 46px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--color-divider)">
+                <div style="font-family: ui-monospace, monospace; font-size: 13px; color: var(--color-accent-700)">{{ v.rev }}</div>
+                <div><div style="font-size: 13.5px">{{ v.note }}</div><div class="text-muted" style="font-size: 12px">{{ v.meta }}</div></div>
+              </div>
+            </sc-for>
+          </div>
+
+          <h4 style="margin: 0 0 12px">Reused from past seasons</h4>
+          <div style="display: grid; gap: 12px; margin-bottom: 32px">
+            <sc-for list="{{ reuse }}" as="r" hint-placeholder-count="3">
+              <div class="blueprint" style="padding: 13px 15px">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-family: ui-monospace, monospace; font-size: 12.5px; margin-bottom: 2px">{{ r.name }}</div>
+                <div class="text-muted" style="font-size: 12.5px">{{ r.note }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Wiring &amp; pinout</h5>
+            <div class="blueprint duotone" style="height: 130px; background: repeating-linear-gradient(135deg, var(--color-neutral-200) 0 9px, var(--color-neutral-300) 9px 18px); display: flex; align-items: center; justify-content: center">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <div style="font-family: ui-monospace, monospace; font-size: 11.5px; background: var(--color-bg); padding: 4px 8px">drivetrain wiring diagram</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isModules }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Season 2026 · rc26-robot</div>
+      <h1 style="margin: 0 0 8px; font-size: clamp(32px, 4vw, 48px)">Modules</h1>
+      <p style="max-width: 76ch; margin-bottom: 12px">One physical block of the robot, one folder in the repo. Schematic, PCB, firmware, the mechanical exports that mount it and its simulation meshes all sit together, so a module is reviewable as a unit instead of scattered files in scattered places.</p>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">Nothing on this page is entered by hand. The hub reads commits from GitHub and rebuilds these cards, so the module status is whatever the repo actually says — not what someone remembered to update.</p>
+      <div style="margin-bottom: 36px">
+        <button class="btn btn-primary blueprint" onClick="{{ goNewMod }}">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          New module
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 18px; margin-bottom: 48px">
+        <sc-for list="{{ modules }}" as="m" hint-placeholder-count="4">
+          <div class="blueprint" style="padding: 18px 20px; cursor: pointer; background: {{ m.bg }}" onClick="{{ m.pick }}">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-family: ui-monospace, monospace; font-size: 12px; color: var(--color-accent-700); margin-bottom: 4px">{{ m.path }}</div>
+            <div style="font-family: var(--font-heading); font-size: 22px; line-height: 1.1; margin-bottom: 10px">{{ m.name }}</div>
+            <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-bottom: 12px">
+              <sc-for list="{{ m.lanes }}" as="ln" hint-placeholder-count="5">
+                <div style="border: 1px solid var(--color-divider); padding: 5px 6px; text-align: center">
+                  <div style="font-family: ui-monospace, monospace; font-size: 10px; letter-spacing: 0.06em">{{ ln.code }}</div>
+                  <div style="font-size: 10px; color: {{ ln.color }}">{{ ln.state }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div class="text-muted" style="font-size: 12px; line-height: 1.5">{{ m.lastCommit }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 20px">
+        <div>
+          <div class="text-muted" style="font-size: 13px; margin-bottom: 2px">Module detail</div>
+          <h2 style="margin: 0">{{ activeName }}</h2>
+        </div>
+        <a class="btn btn-primary blueprint" href="{{ activeVscode }}" style="text-decoration: none">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          Open module in VS Code
+        </a>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 28px">
+        <div class="blueprint" style="padding: 20px 22px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h5 style="margin: 0 0 12px">In the repo</h5>
+          <div style="font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.85; white-space: pre">{{ activeTree }}</div>
+          <div class="text-muted" style="font-size: 12px; line-height: 1.6; margin-top: 14px; border-top: 1px solid var(--color-divider); padding-top: 12px">Native CAD is not in here. <span style="font-family: ui-monospace, monospace">parts.yml</span> names each part and its drive path, so the repo still knows what the module is made of.</div>
+        </div>
+
+        <div>
+          <h5 style="margin: 0 0 12px">Commits — every lane, one feed</h5>
+          <table class="table" style="width: 100%">
+            <thead><tr><th style="text-align: left">Lane</th><th style="text-align: left">Commit</th><th style="text-align: left">Who</th><th style="text-align: left">When</th></tr></thead>
+            <tbody>
+              <sc-for list="{{ activeCommits }}" as="c" hint-placeholder-count="5">
+                <tr>
+                  <td>{{ c.laneTag }}</td>
+                  <td><div style="font-size: 13.5px">{{ c.msg }}</div><div class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">{{ c.sha }} · {{ c.files }}</div></td>
+                  <td style="font-size: 13px">{{ c.who }}</td>
+                  <td class="text-muted" style="font-size: 12.5px; white-space: nowrap">{{ c.when }}</td>
+                </tr>
+              </sc-for>
+            </tbody>
+          </table>
+
+          <div class="blueprint" style="padding: 18px 20px; margin-top: 24px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 6px">How mechanical gets into that feed</h5>
+            <p style="margin: 0 0 10px; font-size: 13.5px">Mech never touches git. They drop a STEP and a PDF into the module on this site; the hub commits those files into <span style="font-family: ui-monospace, monospace">mech/</span> through the GitHub API and updates <span style="font-family: ui-monospace, monospace">parts.yml</span> with the drive path and revision. The commit lands with their name on it.</p>
+            <p class="text-muted" style="margin: 0; font-size: 12.5px">So mechanical gets real version history on the small files that matter, the 500 MB assembly stays on the drive where it belongs, and every lane reads from one timeline.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isNewMod }}">
+    <div style="padding: 32px 28px 80px; max-width: 1180px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Season 2026 · rc26-robot</div>
+      <h1 style="margin: 0 0 8px; font-size: clamp(32px, 4vw, 48px)">New module</h1>
+      <p style="max-width: 76ch; margin-bottom: 12px">A module is the unit of work for all three departments at once. Declaring it here creates the folders, so mechanical, electronics and programming each have somewhere to put their first file instead of inventing a location.</p>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 40px">Two ways in: build one from scratch, or socket in a module that already worked in a past season.</p>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 360px); gap: 32px; margin-bottom: 64px">
+        <div class="blueprint" style="padding: 24px 26px; display: grid; gap: 20px; align-content: start">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h4 style="margin: 0">Build from scratch</h4>
+          <div class="field">
+            <label>What is it?</label>
+            <input class="input" placeholder="e.g. Gripper Controller" value="{{ nmName }}" onChange="{{ setNmName }}" style="width: 100%">
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 6px">Name it after the physical block, not the discipline. "Gripper Controller", not "Gripper PCB".</div>
+          </div>
+          <div class="field">
+            <label>Subsystem it belongs to</label>
+            <select class="input" style="width: 100%">
+              <option>GRP — Gripper</option>
+              <option>DRV — Drivetrain</option>
+              <option>ARM — Manipulator</option>
+              <option>CTL — Control</option>
+              <option>PWR — Power</option>
+              <option>VIS — Vision</option>
+              <option>PNU — Pneumatics</option>
+              <option>FRM — Frame</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Which lanes does it need?</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px">
+              <sc-for list="{{ nmLanes }}" as="ln" hint-placeholder-count="5">
+                <button class="btn" onClick="{{ ln.toggle }}" style="{{ ln.style }}">{{ ln.label }}</button>
+              </sc-for>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px">Only the lanes you pick get a folder. A purely mechanical module needs no hardware folder, and adding one later is fine.</div>
+          </div>
+          <div class="field">
+            <label>Who owns it?</label>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px">
+              <select class="input" style="width: 100%">
+                <option>Mech — Hui Xin</option>
+                <option>Mech — Farah</option>
+                <option>Mech — Aiman</option>
+              </select>
+              <select class="input" style="width: 100%">
+                <option>Elec — Danish</option>
+                <option>Elec — unassigned</option>
+              </select>
+              <select class="input" style="width: 100%">
+                <option>Prog — Aiman</option>
+                <option>Prog — Mei</option>
+                <option>Prog — Nabil</option>
+              </select>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 18px">
+            <button class="btn btn-primary blueprint" onClick="{{ createMod }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Create module
+            </button>
+            <span>{{ createModNote }}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start">
+          <div class="blueprint" style="padding: 18px 20px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 10px">Folders the hub will commit</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.8; white-space: pre">{{ nmTree }}</div>
+          </div>
+          <div class="blueprint" style="padding: 18px 20px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Then each department starts here</h5>
+            <div style="display: grid; gap: 8px; font-size: 12.5px; line-height: 1.5">
+              <div><strong>Mechanical</strong> — register the master on the drive, drop the STEP and drawing into <span style="font-family: ui-monospace, monospace">mech/</span>.</div>
+              <div><strong>Electronics</strong> — start the KiCad project in <span style="font-family: ui-monospace, monospace">hardware/</span>, push, then export the release before the fab order.</div>
+              <div><strong>Programming</strong> — <span style="font-family: ui-monospace, monospace">platformio.ini</span> and a bring-up sketch in <span style="font-family: ui-monospace, monospace">firmware/</span>, on a branch.</div>
+            </div>
+          </div>
+          <div class="blueprint" style="padding: 18px 20px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 6px">One repo, not one per module</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">A new module is a folder and a commit, not a new repository. That keeps a cross-module change in a single pull request and means a junior clones one thing to see the whole robot.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Socket in a ready module</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">These worked. Carrying one forward copies its folder, its README, its <span style="font-family: ui-monospace, monospace">parts.yml</span> and its full commit history into this season, so you start from a proven board instead of a blank folder — and the lineage back to the original season stays recorded.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 24px">
+        <sc-for list="{{ library }}" as="lb" hint-placeholder-count="4">
+          <div class="blueprint" style="padding: 18px 20px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 4px">
+              <div style="font-family: ui-monospace, monospace; font-size: 12px; color: var(--color-accent-700)">{{ lb.origin }}</div>
+              <span class="tag tag-outline" style="font-size: 10.5px">{{ lb.reuse }}</span>
+            </div>
+            <div style="font-family: var(--font-heading); font-size: 21px; line-height: 1.1; margin-bottom: 8px">{{ lb.name }}</div>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.55; margin-bottom: 12px">{{ lb.note }}</div>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px">
+              <sc-for list="{{ lb.lanes }}" as="l" hint-placeholder-count="3">
+                <span class="tag tag-neutral" style="font-size: 10px">{{ l }}</span>
+              </sc-for>
+            </div>
+            <button class="btn btn-secondary btn-block" onClick="{{ lb.socket }}">{{ lb.action }}</button>
+          </div>
+        </sc-for>
+      </div>
+      <div class="blueprint" style="padding: 18px 22px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="text-muted" style="font-size: 13px; line-height: 1.6">A socketed module arrives at the current season's prefix but keeps a <span style="font-family: ui-monospace, monospace">carried_from</span> line in its README. That is how someone in 2029 can trace a board back through four seasons of fixes rather than re-solving a problem you already solved.</div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isProg }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap; margin-bottom: 8px">
+        <div>
+          <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Department</div>
+          <h1 style="margin: 0; font-size: clamp(32px, 4vw, 48px)">Programming</h1>
+          <div class="text-muted" style="font-size: 14px">lead: Aiman · firmware, vision, simulation</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 10px">
+          <span class="text-muted" style="font-size: 13px">Viewing as</span>
+          <div class="seg" style="display: inline-flex">
+            <sc-for list="{{ roleOptions }}" as="r" hint-placeholder-count="2">
+              <button class="seg-opt" onClick="{{ r.pick }}" style="{{ r.style }}">{{ r.label }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+      <p class="text-muted" style="max-width: 74ch; margin-bottom: 40px">Signed in to GitHub through the hub, so nothing here needs a personal token or a repo invite. Open a repo in your editor, propose a change, and a lead approves it.</p>
+
+      <h3 style="margin: 0 0 6px">Repositories</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 16px">One click on <strong>Open in VS Code</strong> does the clone for you — VS Code asks where to put the folder, clones, and opens it on the right branch. You never type <span style="font-family: ui-monospace, monospace">git clone</span>. If VS Code is not installed, Open in browser gives you the same repo in a web editor.</p>
+      <div style="display: grid; gap: 14px; margin-bottom: 48px">
+        <sc-for list="{{ repos }}" as="rp" hint-placeholder-count="3">
+          <div class="blueprint" style="display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 18px 22px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div>
+              <div style="display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 3px">
+                <span style="font-family: ui-monospace, monospace; font-size: 14px">{{ rp.name }}</span>
+                <span class="tag tag-neutral" style="font-size: 10.5px">{{ rp.branch }}</span>
+                <span class="text-muted" style="font-size: 12.5px">{{ rp.meta }}</span>
+              </div>
+              <div class="text-muted" style="font-size: 13px">{{ rp.desc }}</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end">
+              <a class="btn btn-primary blueprint" href="{{ rp.vscode }}" style="text-decoration: none">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                Open in VS Code
+              </a>
+              <a class="btn btn-secondary" href="{{ rp.web }}" target="_blank" style="text-decoration: none">Open in browser</a>
+              <button class="btn btn-ghost" onClick="{{ rp.copy }}">{{ rp.copyLabel }}</button>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="margin: 0 0 6px">The loop, end to end</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 18px">You cannot push to <span style="font-family: ui-monospace, monospace">main</span> — the branch is protected, so GitHub rejects it. Approval is not a policy anyone has to remember; it is the only path that works.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 48px">
+        <div class="blueprint" style="padding: 16px 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">01</div>
+          <h5 style="margin: 0 0 4px">Open in VS Code</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">The button above clones and opens. Nothing typed.</div>
+        </div>
+        <div class="blueprint" style="padding: 16px 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">02</div>
+          <h5 style="margin: 0 0 4px">Edit, then commit</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">VS Code's Source Control panel lists what you changed. Commit and push there, or run the one-line script below.</div>
+        </div>
+        <div class="blueprint" style="padding: 16px 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">03</div>
+          <h5 style="margin: 0 0 4px">It lands on a branch</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">Never on main. The hub sees the push and files a pull request against your module.</div>
+        </div>
+        <div class="blueprint" style="padding: 16px 18px; background: var(--color-accent-100)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">04</div>
+          <h5 style="margin: 0 0 4px">A lead approves</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">It appears in the panel below. Approve &amp; merge writes it to main, with their name on the approval.</div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Getting your changes back</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">Opening a repo is one click. Tracking what you edited afterwards is the harder half — a website cannot read your hard disk, so something has to run on your side. Three routes, honest about what each one costs.</p>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; margin-bottom: 20px">
+        <div class="blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Route A · nothing to build</div>
+          <h5 style="margin: 0 0 8px">VS Code does the tracking</h5>
+          <p class="text-muted" style="margin: 0 0 10px; font-size: 13px">The hub's link clones and opens the repo. From there VS Code's own Source Control panel already lists every modified file and has commit and push buttons — it is the tool you were going to build. The hub polls GitHub and shows your branches back here once pushed.</p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <span class="tag tag-accent" style="font-size: 10.5px">AVAILABLE NOW</span>
+            <span class="tag tag-outline" style="font-size: 10.5px">NO LOCAL AWARENESS</span>
+          </div>
+        </div>
+        <div class="blueprint" style="padding: 18px 20px; background: var(--color-accent-100)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Route B · recommended</div>
+          <h5 style="margin: 0 0 8px">One command does all five steps</h5>
+          <p class="text-muted" style="margin: 0 0 10px; font-size: 13px">A script in the repo. It branches from your change description, stages, commits, pushes and opens the pull request — the whole sequence a beginner gets wrong. No extension, no install, works on any machine that cloned the repo.</p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <span class="tag tag-accent" style="font-size: 10.5px">~40 LINES OF BASH</span>
+            <span class="tag tag-outline" style="font-size: 10.5px">STILL A TERMINAL</span>
+          </div>
+        </div>
+        <div class="blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Route C · full automation</div>
+          <h5 style="margin: 0 0 8px">A club VS Code extension</h5>
+          <p class="text-muted" style="margin: 0 0 10px; font-size: 13px">The only way the hub can genuinely see your working tree. It reads git status, reports which module you are editing, and gives one "Commit &amp; propose" button that files the pull request through the hub.</p>
+          <div style="display: flex; gap: 6px; flex-wrap: wrap">
+            <span class="tag tag-accent" style="font-size: 10.5px">TRUE LOCAL AWARENESS</span>
+            <span class="tag tag-outline" style="font-size: 10.5px">SOMEONE MAINTAINS IT</span>
+          </div>
+        </div>
+      </div>
+      <div class="blueprint" style="padding: 0; background: var(--color-accent-900); margin-bottom: 12px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 0 18px">
+          <span style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.1em; text-transform: uppercase; color: #f2f2f3; opacity: .75">Route B — the whole workflow</span>
+          <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+        </div>
+        <div data-code="p" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 6px 18px 18px; white-space: pre; overflow-x: auto">./scripts/propose.sh "fix encoder direction on rear-left"
+
+# branches      rc26-drv-fix-encoder-direction-on-rear-left
+# stages        everything you changed
+# commits       with your name and that message
+# pushes        to the club org
+# opens the PR  and prints the review link</div>
+      </div>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 48px">Start with A and B — together they cover a 30-person club, cost nothing to maintain and work on day one. Build C only if someone on the team actually wants to own an extension for two years; an unmaintained extension is worse than a terminal.</p>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; margin-bottom: 56px">
+        <div>
+          <h3 style="margin: 0 0 6px">Propose a change</h3>
+          <p class="text-muted" style="font-size: 13.5px; margin-bottom: 20px">You do not need write access. The hub opens a branch on your behalf and files a pull request for a lead to review.</p>
+          <div class="blueprint" style="padding: 22px 24px; display: grid; gap: 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div class="field">
+              <label>Module</label>
+              <select class="input" style="width: 100%">
+                <option>drive-controller</option>
+                <option>can-hub</option>
+                <option>vision-head</option>
+                <option>power-board</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>What did you change?</label>
+              <input class="input" placeholder="Fix encoder direction on rear-left motor" value="{{ prTitle }}" onChange="{{ setPrTitle }}" style="width: 100%">
+            </div>
+            <div class="field">
+              <label>Branch — generated for you</label>
+              <div style="font-family: ui-monospace, monospace; font-size: 13px; padding: 9px 11px; border: 1px solid var(--color-divider); background: var(--color-neutral-100)">{{ branchName }}</div>
+            </div>
+            <div class="field">
+              <label>Notes for the reviewer</label>
+              <textarea class="input" rows="3" placeholder="Tested on the bench at 40% duty. Odometry now matches the tape measure over 2 m." style="width: 100%; resize: vertical"></textarea>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 18px">
+              <button class="btn btn-primary blueprint" onClick="{{ submitPr }}">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                Open pull request
+              </button>
+              <span>{{ prNote }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin: 0 0 6px">Awaiting review</h3>
+          <p class="text-muted" style="font-size: 13.5px; margin-bottom: 20px">{{ reviewIntro }}</p>
+          <div style="display: grid; gap: 14px">
+            <sc-for list="{{ prs }}" as="pr" hint-placeholder-count="3">
+              <div class="blueprint" style="padding: 16px 18px">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="display: flex; justify-content: space-between; gap: 12px; align-items: baseline; margin-bottom: 4px">
+                  <div style="font-size: 14.5px; font-weight: 500">{{ pr.title }}</div>
+                  <span class="tag tag-outline" style="font-size: 10.5px; white-space: nowrap">{{ pr.repo }}</span>
+                </div>
+                <div class="text-muted" style="font-size: 12.5px; margin-bottom: 10px">{{ pr.author }} · {{ pr.branch }} · {{ pr.diff }} · {{ pr.when }}</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center">
+                  <sc-if value="{{ isLead }}" hint-placeholder-val="{{ true }}">
+                    <button class="btn btn-primary blueprint" style="font-size: 12.5px">
+                      <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                      Approve &amp; merge
+                    </button>
+                    <button class="btn btn-secondary" style="font-size: 12.5px">Request changes</button>
+                    <a class="btn btn-ghost" href="{{ pr.vscode }}" style="font-size: 12.5px; text-decoration: none">Review in VS Code</a>
+                  </sc-if>
+                  <sc-if value="{{ isMember }}">
+                    <span class="tag tag-neutral" style="font-size: 10.5px">{{ pr.state }}</span>
+                    <a class="btn btn-ghost" href="{{ pr.vscode }}" style="font-size: 12.5px; text-decoration: none">Open the branch</a>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px; margin-top: 22px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 6px">Why route commits through here</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">Juniors get to contribute on day one without anyone handing out write access, and every merge has a named reviewer. The branch protection rule on <span style="font-family: ui-monospace, monospace">main</span> is what makes this real — set it once per repo.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Commands</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">Pulled from the fenced code in each README, so this cannot drift from the repo. If a command here is wrong, fix the README and push.</p>
+      <div style="display: grid; gap: 28px; margin-bottom: 56px">
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px">
+            <h4 style="margin: 0">First time on a new machine</h4>
+            <span class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">README.md</span>
+          </div>
+          <div class="blueprint" style="padding: 0; background: var(--color-accent-900)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: flex-end; padding: 8px 10px 0">
+              <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+            </div>
+            <div data-code="1" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 4px 18px 18px; white-space: pre; overflow-x: auto">git clone https://github.com/rec-robocon/rc26-robot.git
+cd rc26-robot
+./scripts/setup.sh</div>
+          </div>
+          <div class="text-muted" style="font-size: 12.5px; margin-top: 8px">Ubuntu 22.04 or WSL2. Installs ROS 2 Humble, Gazebo, PlatformIO and kicad-cli, and refuses to run twice.</div>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px">
+            <h4 style="margin: 0">Gazebo simulation</h4>
+            <span class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">sim/README.md</span>
+          </div>
+          <p class="text-muted" style="font-size: 13.5px; margin-bottom: 12px">Drive the robot before it exists. The arena world is built to the season rulebook dimensions, so autonomous routines can be tuned months before the frame is welded.</p>
+          <div class="blueprint" style="padding: 0; background: var(--color-accent-900)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: flex-end; padding: 8px 10px 0">
+              <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+            </div>
+            <div data-code="2" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 4px 18px 18px; white-space: pre; overflow-x: auto">cd sim
+colcon build --symlink-install
+source install/setup.bash
+ros2 launch rc26_sim arena.launch.py</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-top: 14px">
+            <div class="blueprint" style="padding: 14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <h5 style="margin: 0 0 6px">Drive it by hand</h5>
+              <div data-code="3" style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; white-space: pre; overflow-x: auto">ros2 run teleop_twist_keyboard \
+  teleop_twist_keyboard</div>
+            </div>
+            <div class="blueprint" style="padding: 14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <h5 style="margin: 0 0 6px">Run the autonomous routine</h5>
+              <div data-code="4" style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; white-space: pre; overflow-x: auto">ros2 launch rc26_sim \
+  auto_run.launch.py round:=1</div>
+            </div>
+            <div class="blueprint" style="padding: 14px 16px">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              <h5 style="margin: 0 0 6px">Watch the topics</h5>
+              <div data-code="5" style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7; white-space: pre; overflow-x: auto">ros2 topic echo /odom
+rviz2 -d sim/config/rc26.rviz</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div style="display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 8px">
+            <h4 style="margin: 0">Build and flash</h4>
+            <span class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">modules/*/firmware/README.md</span>
+          </div>
+          <div class="blueprint" style="padding: 0; background: var(--color-accent-900)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: flex-end; padding: 8px 10px 0">
+              <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+            </div>
+            <div data-code="6" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 4px 18px 18px; white-space: pre; overflow-x: auto">cd modules/drive-controller/firmware
+pio run                          # build only
+pio run -t upload                # flash the board
+pio device monitor -b 115200     # serial output</div>
+          </div>
+          <div class="text-muted" style="font-size: 12.5px; margin-top: 8px">The same firmware runs against the simulator with <span style="font-family: ui-monospace, monospace">pio run -e sim</span>, so control logic can be tested with no hardware on the bench.</div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Add an item</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">For things that are not a code change — a calibration run, a test log, a tuning note. Code itself arrives through a pull request, not here.</p>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 32px">
+        <div class="blueprint" style="padding: 22px 24px; display: grid; gap: 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="field">
+            <label>Where is it?</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px">
+              <sc-for list="{{ locOptionsProg }}" as="o" hint-placeholder-count="3">
+                <button class="btn" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isStorage }}">
+              <div class="blueprint" style="padding: 24px 20px; text-align: center; background: var(--color-neutral-100); cursor: pointer">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-family: var(--font-heading); font-size: 17px; margin-bottom: 4px">Drop files here</div>
+                <div class="text-muted" style="font-size: 12.5px">log · CSV · rosbag summary · screenshot — up to 50 MB each</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isLinkLoc }}" hint-placeholder-val="{{ true }}">
+              <input class="input" placeholder="{{ locPlaceholder }}" value="{{ linkValue }}" onChange="{{ setLink }}" style="width: 100%">
+            </sc-if>
+          </div>
+          <div class="field">
+            <label>Name it</label>
+            <input class="input" placeholder="RC26-DRV-PIDTUNE-v1" value="{{ nameValue }}" onChange="{{ setName }}" style="width: 100%; font-family: ui-monospace, monospace">
+            <div style="margin-top: 8px">{{ nameFeedback }}</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px">
+            <div class="field">
+              <label>Subsystem</label>
+              <select class="input" style="width: 100%">
+                <option>DRV — Drivetrain</option>
+                <option>ARM — Manipulator</option>
+                <option>CTL — Control</option>
+                <option>VIS — Vision</option>
+                <option>GRP — Gripper</option>
+                <option>PWR — Power</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Kind</label>
+              <select class="input" style="width: 100%">
+                <option>Test log</option>
+                <option>Calibration data</option>
+                <option>Tuning note</option>
+                <option>Simulation asset</option>
+                <option>Helper script</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <div class="seg" style="display: inline-flex">
+              <sc-for list="{{ statusOptions }}" as="st" hint-placeholder-count="4">
+                <button class="seg-opt" onClick="{{ st.pick }}" style="{{ st.style }}">{{ st.label }}</button>
+              </sc-for>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 18px">
+            <button class="btn btn-primary blueprint" onClick="{{ save }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Save item
+            </button>
+            <button class="btn btn-ghost">Save and add another</button>
+            <span style="margin-left: auto">{{ savedNote }}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start">
+          <div class="blueprint" style="padding: 16px 18px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">The naming rule</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.7">RC<span style="opacity: .6">26</span>-<span style="opacity: .6">DRV</span>-<span style="opacity: .6">PART</span>-<span style="opacity: .6">A</span>-v<span style="opacity: .6">3</span></div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 8px; line-height: 1.6">season · subsystem code · part or module · variant (optional) · revision. Uppercase, no spaces, no "final".</div>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Log the run, not just the result</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">Next year's team can re-read your reasoning far more usefully than your final number. Say what you tried and what failed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isElec }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Department</div>
+      <h1 style="margin: 0 0 4px; font-size: clamp(32px, 4vw, 48px)">Electronics</h1>
+      <div class="text-muted" style="font-size: 14px; margin-bottom: 12px">lead: Danish · schematics, PCB, power</div>
+      <p style="max-width: 76ch; margin-bottom: 40px">KiCad and Altium sources are text files a few MB in size, so they belong in the repo alongside the firmware that runs on them — properly versioned, with real diffs. You have the easiest storage story of the three departments: everything lives in one place.</p>
+
+      <h3 style="margin: 0 0 16px">Boards this season</h3>
+      <table class="table" style="width: 100%; margin-bottom: 48px">
+        <thead><tr><th style="text-align: left">Module</th><th style="text-align: left">Schematic</th><th style="text-align: left">PCB</th><th style="text-align: left">Release</th><th style="text-align: left">Status</th><th style="text-align: left"></th></tr></thead>
+        <tbody>
+          <sc-for list="{{ boards }}" as="b" hint-placeholder-count="3">
+            <tr>
+              <td><div style="font-size: 14px">{{ b.name }}</div><div class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">{{ b.path }}</div></td>
+              <td class="text-muted" style="font-size: 13px">{{ b.sch }}</td>
+              <td class="text-muted" style="font-size: 13px">{{ b.pcb }}</td>
+              <td style="font-size: 12.5px">{{ b.release }}</td>
+              <td>{{ b.statusTag }}</td>
+              <td><a href="{{ b.vscode }}" style="font-size: 12.5px; white-space: nowrap">Open in VS Code</a></td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 32px; margin-bottom: 56px">
+        <div>
+          <h3 style="margin: 0 0 6px">Before every fab order</h3>
+          <p class="text-muted" style="max-width: 70ch; margin-bottom: 16px">Export the release files and commit them. The PDF and the Gerbers are what the hub indexes and what the next batch reads — the KiCad source is for you, the release is for everyone else.</p>
+          <div class="blueprint" style="padding: 0; background: var(--color-accent-900)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 0 18px">
+              <span class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px; color: #f2f2f3; opacity: .7">modules/*/hardware/README.md</span>
+              <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+            </div>
+            <div data-code="e1" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 6px 18px 18px; white-space: pre; overflow-x: auto">cd modules/can-hub/hardware
+kicad-cli sch export pdf can-hub.kicad_sch -o release/
+kicad-cli pcb export gerbers can-hub.kicad_pcb -o release/gerbers/
+zip -r release/gerbers-v2.zip release/gerbers/</div>
+          </div>
+        </div>
+        <div class="blueprint" style="padding: 20px 22px; align-self: start">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <h5 style="margin: 0 0 10px">Fab-order checklist</h5>
+          <div style="display: grid; gap: 7px; font-size: 12.5px; line-height: 1.5">
+            <div>Schematic PDF exported and committed</div>
+            <div>Gerbers zipped with the revision in the filename</div>
+            <div>BOM exported, part numbers not just values</div>
+            <div>Board marked as-built once it is populated and tested</div>
+            <div>Wiring diagram updated if connectors moved</div>
+            <div>Firmware pin map checked against the new revision</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Add an item</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">Push the KiCad source and paste the link. Release artefacts — Gerber zip, schematic PDF, BOM — can be dropped straight in.</p>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 32px">
+        <div class="blueprint" style="padding: 22px 24px; display: grid; gap: 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="field">
+            <label>Where is it?</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px">
+              <sc-for list="{{ locOptionsElec }}" as="o" hint-placeholder-count="3">
+                <button class="btn" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isStorage }}">
+              <div class="blueprint" style="padding: 24px 20px; text-align: center; background: var(--color-neutral-100); cursor: pointer">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-family: var(--font-heading); font-size: 17px; margin-bottom: 4px">Drop files here</div>
+                <div class="text-muted" style="font-size: 12.5px">Gerber zip · schematic PDF · BOM · datasheet — up to 50 MB each</div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isLinkLoc }}" hint-placeholder-val="{{ true }}">
+              <input class="input" placeholder="{{ locPlaceholder }}" value="{{ linkValue }}" onChange="{{ setLink }}" style="width: 100%">
+            </sc-if>
+          </div>
+          <div class="field">
+            <label>Name it</label>
+            <input class="input" placeholder="RC26-CTL-CANHUB-v2" value="{{ nameValue }}" onChange="{{ setName }}" style="width: 100%; font-family: ui-monospace, monospace">
+            <div style="margin-top: 8px">{{ nameFeedback }}</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px">
+            <div class="field">
+              <label>Subsystem</label>
+              <select class="input" style="width: 100%">
+                <option>CTL — Control</option>
+                <option>PWR — Power</option>
+                <option>DRV — Drivetrain</option>
+                <option>VIS — Vision</option>
+                <option>ARM — Manipulator</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Kind</label>
+              <select class="input" style="width: 100%">
+                <option>Schematic</option>
+                <option>PCB layout</option>
+                <option>Gerber release</option>
+                <option>BOM</option>
+                <option>Wiring diagram</option>
+                <option>Datasheet</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <div class="seg" style="display: inline-flex">
+              <sc-for list="{{ statusOptions }}" as="st" hint-placeholder-count="4">
+                <button class="seg-opt" onClick="{{ st.pick }}" style="{{ st.style }}">{{ st.label }}</button>
+              </sc-for>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 6px">As-built means this revision is the board currently on the robot.</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 18px">
+            <button class="btn btn-primary blueprint" onClick="{{ save }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Save item
+            </button>
+            <button class="btn btn-ghost">Save and add another</button>
+            <span style="margin-left: auto">{{ savedNote }}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start">
+          <div class="blueprint" style="padding: 16px 18px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">The naming rule</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.7">RC<span style="opacity: .6">26</span>-<span style="opacity: .6">CTL</span>-<span style="opacity: .6">CANHUB</span>-v<span style="opacity: .6">2</span></div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 8px; line-height: 1.6">season · subsystem code · board · revision. Bump the revision on every fab order, never reuse one.</div>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Keep the source in git</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">A .kicad_sch is text. Committing it means real diffs, real blame and no "which version did we send to fab" arguments.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isMech }}">
+    <div style="padding: 32px 28px 80px; max-width: 1240px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Department</div>
+      <h1 style="margin: 0 0 4px; font-size: clamp(32px, 4vw, 48px)">Mechanical</h1>
+      <div class="text-muted" style="font-size: 14px; margin-bottom: 12px">lead: Hui Xin · CAD, frame, drivetrain, gripper</div>
+      <p style="max-width: 76ch; margin-bottom: 40px">A SolidWorks assembly is 50 to 500 MB and binary, so the master stays on the club drives. What the hub holds is the record of where it is and the two small files that survive: the STEP and the PDF drawing. Two entries, under a minute, and the work outlives the drive.</p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 18px; margin-bottom: 48px">
+        <div class="blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">01</div>
+          <h5 style="margin: 0 0 4px">Register the master</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">Pick DRIVE-A / B and type the folder. Nothing uploads — the hub just records where the .sldasm lives so nobody has to ask you.</div>
+        </div>
+        <div class="blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">02</div>
+          <h5 style="margin: 0 0 4px">Drop the STEP and the drawing</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">Export them while the part is still open in front of you. The hub commits both into the module and updates parts.yml under your name.</div>
+        </div>
+        <div class="blueprint" style="padding: 18px 20px; background: var(--color-accent-100)">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700); line-height: 1; margin-bottom: 6px">03</div>
+          <h5 style="margin: 0 0 4px">Say if it was built</h5>
+          <div class="text-muted" style="font-size: 12.5px; line-height: 1.55">The latest CAD is often not the part on the robot. One click on as-built saves the next batch a week.</div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Parts this season</h3>
+      <p class="text-muted" style="font-size: 13.5px; margin-bottom: 16px">Design and as-built shown side by side on purpose — the difference between them is the thing that gets lost.</p>
+      <table class="table" style="width: 100%; margin-bottom: 20px">
+        <thead><tr><th style="text-align: left">Part</th><th style="text-align: left">Status</th><th style="text-align: left">Master</th><th style="text-align: left">Exports</th><th style="text-align: left">Rev</th></tr></thead>
+        <tbody>
+          <sc-for list="{{ mechParts }}" as="p" hint-placeholder-count="6">
+            <tr>
+              <td><span style="font-family: ui-monospace, monospace; font-size: 12.5px">{{ p.name }}</span><br><span class="text-muted" style="font-size: 12.5px">{{ p.title }}</span></td>
+              <td>{{ p.statusTag }}</td>
+              <td style="font-size: 12.5px">{{ p.master }}</td>
+              <td style="font-size: 12.5px">{{ p.exports }}</td>
+              <td class="text-muted" style="font-size: 13px">{{ p.rev }}</td>
+            </tr>
+          </sc-for>
+        </tbody>
+      </table>
+      <div class="blueprint" style="padding: 16px 18px; margin-bottom: 48px">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">Two parts here are as-built with no STEP export. Those are the ones that will be unreadable in five years — clear them before the season closes.</div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 340px); gap: 32px; margin-bottom: 56px">
+        <div>
+          <h3 style="margin: 0 0 6px">Your export feeds the simulation</h3>
+          <p class="text-muted" style="max-width: 70ch; margin-bottom: 16px">The same STEP the archive wants is the file Gazebo needs. One script turns it into a visual mesh and a decimated collision mesh and wires it into the URDF — so the export is not paperwork, it is what lets programming test against your part.</p>
+          <div class="blueprint" style="padding: 0; background: var(--color-accent-900)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px 0 18px">
+              <span class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px; color: #f2f2f3; opacity: .7">mech/README.md</span>
+              <button class="btn btn-ghost" onClick="{{ copyCmd }}" style="font-size: 11.5px; color: #f2f2f3">Copy</button>
+            </div>
+            <div data-code="m1" style="font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.85; color: #f2f2f3; padding: 6px 18px 18px; white-space: pre; overflow-x: auto">./scripts/step2mesh.sh \
+  modules/drive-controller/mech/RC26-DRV-MOTORMNT-v2.step
+
+# writes sim/meshes/rc26_drv_motormnt_v2.dae      (visual)
+#        sim/meshes/rc26_drv_motormnt_v2_col.stl  (collision, decimated)</div>
+          </div>
+          <div class="text-muted" style="font-size: 12.5px; margin-top: 8px">If you would rather not touch a terminal, dropping the STEP on this page runs the same script on the server.</div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-self: start">
+          <h3 style="margin: 0">Drives</h3>
+          <div class="blueprint" style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div><div style="font-family: ui-monospace, monospace; font-size: 13px">DRIVE-A</div><div class="text-muted" style="font-size: 12.5px">custodian: Aiman</div></div>
+            <span class="tag tag-accent" style="font-size: 11px">MIRRORED 02 SEP</span>
+          </div>
+          <div class="blueprint" style="padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div><div style="font-family: ui-monospace, monospace; font-size: 13px">DRIVE-B</div><div class="text-muted" style="font-size: 12.5px">custodian: Hui Xin</div></div>
+            <span class="tag tag-outline" style="font-size: 11px">MIRRORED 02 SEP</span>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Folder rule</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.7">/RC26/DRV/WHEELMOD/</div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 8px; line-height: 1.6">Folders mirror the naming convention exactly, so a record's path is enough to find the file without asking anyone.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3 style="margin: 0 0 6px">Add an item</h3>
+      <p class="text-muted" style="max-width: 76ch; margin-bottom: 20px">Register a master on the drive, or drop an export. Do both for anything you actually machined.</p>
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 300px); gap: 32px">
+        <div class="blueprint" style="padding: 22px 24px; display: grid; gap: 18px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="field">
+            <label>Where is it?</label>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px">
+              <sc-for list="{{ locOptionsMech }}" as="o" hint-placeholder-count="2">
+                <button class="btn" onClick="{{ o.pick }}" style="{{ o.style }}">{{ o.label }}</button>
+              </sc-for>
+            </div>
+            <sc-if value="{{ isStorage }}">
+              <div class="blueprint" style="padding: 24px 20px; text-align: center; background: var(--color-neutral-100); cursor: pointer">
+                <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+                <div style="font-family: var(--font-heading); font-size: 17px; margin-bottom: 4px">Drop files here</div>
+                <div class="text-muted" style="font-size: 12.5px">STEP · STL · PDF drawing · photo — up to 50 MB each</div>
+              </div>
+              <div style="display: grid; gap: 6px; margin-top: 10px">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12.5px; border-bottom: 1px solid var(--color-divider); padding-bottom: 6px">
+                  <span style="font-family: ui-monospace, monospace">RC26-DRV-WHEELMOD-A-v3.step</span>
+                  <span class="text-muted">4.2 MB · committed to mech/</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12.5px; border-bottom: 1px solid var(--color-divider); padding-bottom: 6px">
+                  <span style="font-family: ui-monospace, monospace">RC26-DRV-WHEELMOD-A-v3.pdf</span>
+                  <span class="text-muted">0.8 MB · committed to mech/</span>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ isLinkLoc }}" hint-placeholder-val="{{ true }}">
+              <input class="input" placeholder="{{ locPlaceholder }}" value="{{ linkValue }}" onChange="{{ setLink }}" style="width: 100%">
+            </sc-if>
+          </div>
+          <div class="field">
+            <label>Name it</label>
+            <input class="input" placeholder="RC26-DRV-WHEELMOD-A-v3" value="{{ nameValue }}" onChange="{{ setName }}" style="width: 100%; font-family: ui-monospace, monospace">
+            <div style="margin-top: 8px">{{ nameFeedback }}</div>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px">
+            <div class="field">
+              <label>Subsystem</label>
+              <select class="input" style="width: 100%">
+                <option>DRV — Drivetrain</option>
+                <option>ARM — Manipulator</option>
+                <option>GRP — Gripper</option>
+                <option>FRM — Frame</option>
+                <option>PNU — Pneumatics</option>
+                <option>PWR — Power</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Kind</label>
+              <select class="input" style="width: 100%">
+                <option>CAD part</option>
+                <option>CAD assembly</option>
+                <option>STEP export</option>
+                <option>PDF drawing</option>
+                <option>Jig or fixture</option>
+                <option>Photo of the built part</option>
+              </select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <div class="seg" style="display: inline-flex">
+              <sc-for list="{{ statusOptions }}" as="st" hint-placeholder-count="4">
+                <button class="seg-opt" onClick="{{ st.pick }}" style="{{ st.style }}">{{ st.label }}</button>
+              </sc-for>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 6px">As-built means this is what is physically on the robot right now.</div>
+          </div>
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 18px">
+            <button class="btn btn-primary blueprint" onClick="{{ save }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Save item
+            </button>
+            <button class="btn btn-ghost">Save and add another</button>
+            <span style="margin-left: auto">{{ savedNote }}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start">
+          <div class="blueprint" style="padding: 16px 18px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">The naming rule</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 12.5px; line-height: 1.7">RC<span style="opacity: .6">26</span>-<span style="opacity: .6">DRV</span>-<span style="opacity: .6">PART</span>-<span style="opacity: .6">A</span>-v<span style="opacity: .6">3</span></div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 8px; line-height: 1.6">season · subsystem code · part · variant (optional) · revision. Uppercase, no spaces, no "final".</div>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Subsystem codes</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.8; font-family: ui-monospace, monospace">DRV drivetrain<br>ARM manipulator<br>GRP gripper<br>FRM frame<br>PNU pneumatics<br>PWR power</div>
+          </div>
+          <div class="blueprint" style="padding: 16px 18px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 8px">Before you mark as-built</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">A STEP export and a PDF drawing must be attached. Native CAD may not open in five years; these will.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isNew }}">
+    <div style="padding: 32px 28px 80px; max-width: 1080px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Leads only · once a year</div>
+      <h1 style="margin: 0 0 8px; font-size: clamp(32px, 4vw, 48px)">Start a new season</h1>
+      <p style="max-width: 72ch; margin-bottom: 12px">Everything you have seen so far is a season in progress. This is the empty-page case — the twenty minutes at the start of the year that decide whether next year's batch can find anything.</p>
+      <p class="text-muted" style="max-width: 72ch; margin-bottom: 40px">Declare the robot and its modules here and the hub scaffolds the rest: the repo, the folder per module, the branch protection, the webhook, the drive folders. Nobody creates a repo by hand again.</p>
+
+      <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 380px); gap: 32px">
+        <div style="display: grid; gap: 24px">
+
+          <div class="blueprint" style="padding: 22px 24px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; gap: 14px; align-items: baseline; margin-bottom: 14px">
+              <span style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700)">01</span>
+              <h4 style="margin: 0">The robot</h4>
+            </div>
+            <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px">
+              <div class="field">
+                <label>Season</label>
+                <input class="input" value="{{ yearValue }}" onChange="{{ setYear }}" style="width: 100%; font-family: ui-monospace, monospace">
+              </div>
+              <div class="field">
+                <label>Codename</label>
+                <input class="input" placeholder="pick a short word — animals have worked well" value="{{ codeValue }}" onChange="{{ setCode }}" style="width: 100%">
+              </div>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 10px">Prefix becomes <span style="font-family: ui-monospace, monospace">{{ prefix }}</span> — it goes on every file name for the next twelve months, so decide it once and do not change it.</div>
+          </div>
+
+          <div class="blueprint" style="padding: 22px 24px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; gap: 14px; align-items: baseline; margin-bottom: 8px">
+              <span style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700)">02</span>
+              <h4 style="margin: 0">Subsystem codes</h4>
+            </div>
+            <p class="text-muted" style="font-size: 13px; margin-bottom: 14px">Fixed for the club, not chosen per season. This is what makes a search for a drivetrain part return four years of results instead of one.</p>
+            <div style="display: flex; gap: 6px; flex-wrap: wrap">
+              <span class="tag tag-neutral" style="font-size: 11px">DRV</span>
+              <span class="tag tag-neutral" style="font-size: 11px">ARM</span>
+              <span class="tag tag-neutral" style="font-size: 11px">GRP</span>
+              <span class="tag tag-neutral" style="font-size: 11px">PWR</span>
+              <span class="tag tag-neutral" style="font-size: 11px">CTL</span>
+              <span class="tag tag-neutral" style="font-size: 11px">VIS</span>
+              <span class="tag tag-neutral" style="font-size: 11px">PNU</span>
+              <span class="tag tag-neutral" style="font-size: 11px">FRM</span>
+              <span class="tag tag-outline" style="font-size: 11px">+ add a code</span>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 12px">Adding one is a club decision and it is permanent. Renaming one orphans every past file that used it.</div>
+          </div>
+
+          <div class="blueprint" style="padding: 22px 24px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; gap: 14px; align-items: baseline; margin-bottom: 8px">
+              <span style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700)">03</span>
+              <h4 style="margin: 0">Declare the modules</h4>
+            </div>
+            <p class="text-muted" style="font-size: 13px; margin-bottom: 16px">Guess badly here and it still works — modules can be added mid-season. Start with the boards you know you need.</p>
+            <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap">
+              <input class="input" placeholder="e.g. CAN Hub" value="{{ modInput }}" onChange="{{ setModInput }}" style="flex: 1; min-width: 160px">
+              <button class="btn btn-secondary" onClick="{{ addMod }}">Add module</button>
+            </div>
+            <div style="display: grid; gap: 0">
+              <sc-for list="{{ draftModules }}" as="d" hint-placeholder-count="3">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--color-divider)">
+                  <div>
+                    <div style="font-size: 14px">{{ d.name }}</div>
+                    <div class="text-muted" style="font-family: ui-monospace, monospace; font-size: 11.5px">{{ d.path }}</div>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 10px">
+                    <span class="tag tag-outline" style="font-size: 10.5px">{{ d.origin }}</span>
+                    <button class="btn btn-ghost" onClick="{{ d.remove }}" style="font-size: 12px">Remove</button>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div class="text-muted" style="font-size: 12.5px; margin-top: 12px">{{ carryNote }}</div>
+          </div>
+
+          <div class="blueprint" style="padding: 22px 24px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="display: flex; gap: 14px; align-items: baseline; margin-bottom: 8px">
+              <span style="font-family: var(--font-heading); font-size: 24px; color: var(--color-accent-700)">04</span>
+              <h4 style="margin: 0">Leads and access</h4>
+            </div>
+            <p class="text-muted" style="font-size: 13px; margin-bottom: 14px">Two new org owners minimum, plus one advisor who does not graduate. This is the step that broke every previous year.</p>
+            <div style="display: grid; gap: 8px">
+              <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding-bottom: 7px; border-bottom: 1px solid var(--color-divider)">
+                <span>Team lead — full org owner</span><span class="text-muted">to be assigned</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding-bottom: 7px; border-bottom: 1px solid var(--color-divider)">
+                <span>Mechanical lead</span><span class="text-muted">to be assigned</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding-bottom: 7px; border-bottom: 1px solid var(--color-divider)">
+                <span>Electronics lead</span><span class="text-muted">to be assigned</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px; padding-bottom: 7px; border-bottom: 1px solid var(--color-divider)">
+                <span>Programming lead</span><span class="text-muted">to be assigned</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; gap: 12px; font-size: 13.5px">
+                <span>Advisor — permanent owner, never removed</span><span class="text-muted">to be assigned</span>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--color-divider); padding-top: 20px">
+            <button class="btn btn-primary blueprint" onClick="{{ createSeason }}">
+              <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+              Create season
+            </button>
+            <span>{{ createNote }}</span>
+          </div>
+        </div>
+
+        <div style="display: grid; gap: 16px; align-content: start">
+          <div class="blueprint" style="padding: 18px 20px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 10px">Repo the hub will create</h5>
+            <div style="font-family: ui-monospace, monospace; font-size: 11.5px; line-height: 1.8; white-space: pre">{{ scaffoldTree }}</div>
+          </div>
+
+          <div class="blueprint" style="padding: 18px 20px">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 10px">And then, automatically</h5>
+            <div style="display: grid; gap: 7px; font-size: 12.5px; line-height: 1.5">
+              <div>Repo created in the club org from the season template</div>
+              <div>Branch protection on <span style="font-family: ui-monospace, monospace">main</span> — review required</div>
+              <div>Push webhook wired to the hub</div>
+              <div>A <span style="font-family: ui-monospace, monospace">parts.yml</span> stub in every module</div>
+              <div>Drive folders created on DRIVE-A and mirrored to B</div>
+              <div>Last season marked retired, this one set active</div>
+              <div>Graduating members dropped to alum, read-only</div>
+            </div>
+          </div>
+
+          <div class="blueprint" style="padding: 18px 20px; background: var(--color-accent-100)">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <h5 style="margin: 0 0 6px">Before you click create</h5>
+            <div class="text-muted" style="font-size: 12.5px; line-height: 1.6">Close out last season first — every as-built part needs its STEP and PDF committed. Once the season flips to retired, the people who know which file was the real one have already left.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isStart }}">
+    <div style="padding: 32px 28px 80px; max-width: 940px; width: 100%; margin: 0 auto">
+      <div class="text-muted" style="font-family: var(--font-heading); font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px">Read this first</div>
+      <h1 style="margin: 0 0 8px; font-size: clamp(32px, 4vw, 50px)">Your first week</h1>
+      <p style="max-width: 66ch; font-size: 17px; margin-bottom: 40px">You are here for two years. Roughly half of what the team knows is written down and the other half is in someone's head. This page is how you get at the first half, and who to ask for the second.</p>
+
+      <div style="display: grid; gap: 16px; margin-bottom: 48px">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="5">
+          <div class="blueprint" style="display: grid; grid-template-columns: 56px 1fr; gap: 20px; padding: 20px 22px; align-items: start">
+            <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+            <div style="font-family: var(--font-heading); font-size: 28px; color: var(--color-accent-700); line-height: 1">{{ st.n }}</div>
+            <div>
+              <h4 style="margin: 0 0 4px">{{ st.title }}</h4>
+              <p style="margin: 0">{{ st.body }}</p>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <h3 style="margin: 0 0 16px">Three rules that keep this working</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; margin-bottom: 48px">
+        <div class="card blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Rule 01</div>
+          <div class="card-title">Nothing under a personal account</div>
+          <div class="card-body">Repos go in the club org. Files go on club drives. If it is on your laptop only, it does not exist.</div>
+        </div>
+        <div class="card blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Rule 02</div>
+          <div class="card-title">Name it the one way</div>
+          <div class="card-body">The pattern is on your department page, next to the field. Two years from now it is the only reason anyone finds your work.</div>
+        </div>
+        <div class="card blueprint" style="padding: 18px 20px">
+          <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+          <div class="card-kicker">Rule 03</div>
+          <div class="card-title">Say what was actually built</div>
+          <div class="card-body">The latest CAD is often not the part on the robot. Marking as-built takes one click and saves a week of confusion.</div>
+        </div>
+      </div>
+
+      <div class="blueprint" style="padding: 22px 26px; background: var(--color-accent-900); color: #f2f2f3">
+        <i class="corner tl"></i><i class="corner tr"></i><i class="corner bl"></i><i class="corner br"></i>
+        <h4 style="margin: 0 0 8px; color: #f2f2f3">Who to ask</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; font-size: 14px">
+          <div><strong>Mechanical / CAD</strong><br><span style="opacity: .8">Hui Xin · batch 24/26</span></div>
+          <div><strong>Electronics / PCB</strong><br><span style="opacity: .8">Danish · batch 25/27</span></div>
+          <div><strong>Programming</strong><br><span style="opacity: .8">Aiman · batch 25/27</span></div>
+          <div><strong>Anything about the hub</strong><br><span style="opacity: .8">whoever is team lead this season</span></div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1280, &quot;height&quot;: 860}}">
+class Component extends DCLogic {
+  state = {
+    screen: "home",
+    loc: "GitHub",
+    status: "Design",
+    name: "",
+    link: "",
+    saved: false,
+    role: "member",
+    prTitle: "",
+    prSubmitted: false,
+    copied: null,
+    mod: 0,
+    year: "2027",
+    codename: "",
+    modInput: "",
+    created: false,
+    nmName: "",
+    nmLanes: ["hardware", "firmware", "mech"],
+    modCreated: false,
+    socketed: [],
+    draft: [
+      { name: "CAN Hub", origin: "CARRIED FROM RC26" },
+      { name: "Drive Controller", origin: "CARRIED FROM RC26" },
+      { name: "Power Board", origin: "CARRIED FROM RC26" },
+    ],
+  };
+
+  LOC_DEFAULTS = { mech: "DRIVE-A / B", elec: "GitHub", prog: "GitHub" };
+
+  slug(name) {
+    return name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  MODULES = [
+    {
+      name: "CAN Hub", path: "modules/can-hub/", slug: "can-hub",
+      lanes: [["SCH", "v2"], ["PCB", "v2"], ["FW", "v4"], ["MECH", "v1"], ["SIM", "\u2014"]],
+      lastCommit: "fw: raise CAN bitrate to 1 Mbit — Aiman, 2 days ago",
+      release: "gerbers-v2.zip", boardStatus: "AS-BUILT",
+      tree: "modules/can-hub/\n├── hardware/\n│   ├── can-hub.kicad_sch\n│   ├── can-hub.kicad_pcb\n│   └── release/\n│       ├── gerbers-v2.zip\n│       └── schematic-v2.pdf\n├── firmware/\n│   ├── src/can_hub.c\n│   └── platformio.ini\n├── mech/\n│   ├── RC26-CTL-CANMOUNT-v1.step\n│   ├── RC26-CTL-CANMOUNT-v1.pdf\n│   └── parts.yml\n└── README.md",
+      commits: [
+        { lane: "FW", msg: "Raise CAN bitrate to 1 Mbit, retune filters", sha: "a3f19c2", files: "2 files", who: "Aiman", when: "2 days ago" },
+        { lane: "MECH", msg: "Add CAN mount STEP + drawing v1", sha: "7be0d41", files: "3 files · via hub", who: "Hui Xin", when: "4 days ago" },
+        { lane: "PCB", msg: "Move terminator jumper away from the connector", sha: "1c94ea8", files: "1 file", who: "Danish", when: "6 days ago" },
+        { lane: "SCH", msg: "Split 5 V and 3V3 rails, add TVS on the bus", sha: "e52b7a0", files: "1 file", who: "Danish", when: "6 days ago" },
+        { lane: "FW", msg: "Initial CAN hub bring-up", sha: "9d1a3f6", files: "5 files", who: "Aiman", when: "3 weeks ago" },
+      ],
+    },
+    {
+      name: "Drive Controller", path: "modules/drive-controller/", slug: "drive-controller",
+      lanes: [["SCH", "v3"], ["PCB", "v3"], ["FW", "v6"], ["MECH", "v2"], ["SIM", "v2"]],
+      lastCommit: "mech: motor mount v2 export — Hui Xin, yesterday",
+      release: "gerbers-v3.zip", boardStatus: "AS-BUILT",
+      tree: "modules/drive-controller/\n├── hardware/\n│   ├── drive-ctl.kicad_sch\n│   ├── drive-ctl.kicad_pcb\n│   └── release/\n│       ├── gerbers-v3.zip\n│       └── schematic-v3.pdf\n├── firmware/\n│   ├── src/mecanum.c\n│   ├── src/odometry.c\n│   └── test/pid_bench.md\n├── mech/\n│   ├── RC26-DRV-MOTORMNT-v2.step\n│   ├── RC26-DRV-MOTORMNT-v2.pdf\n│   └── parts.yml\n├── sim/\n│   ├── motormnt_v2.dae\n│   ├── motormnt_v2_col.stl\n│   └── drive.urdf.xacro\n└── README.md",
+      commits: [
+        { lane: "SIM", msg: "Regenerate motor mount mesh from v2 STEP", sha: "8b31c05", files: "2 files · auto", who: "step2mesh", when: "yesterday" },
+        { lane: "MECH", msg: "Motor mount v2 export, bore corrected", sha: "4fa8b13", files: "3 files · via hub", who: "Hui Xin", when: "yesterday" },
+        { lane: "FW", msg: "Fix encoder direction on rear-left", sha: "b7c2019", files: "2 files · in review", who: "Nabil", when: "4 hours ago" },
+        { lane: "FW", msg: "Odometry now matches tape over 2 m", sha: "6e14d8a", files: "1 file", who: "Aiman", when: "5 days ago" },
+        { lane: "PCB", msg: "Widen motor traces to 2 mm", sha: "cc07f52", files: "1 file", who: "Danish", when: "2 weeks ago" },
+        { lane: "SCH", msg: "Add current sense on all four channels", sha: "22b9e4d", files: "1 file", who: "Danish", when: "2 weeks ago" },
+      ],
+    },
+    {
+      name: "Power Board", path: "modules/power-board/", slug: "power-board",
+      lanes: [["SCH", "v1"], ["PCB", "v1"], ["FW", "—"], ["MECH", "v1"], ["SIM", "—"]],
+      lastCommit: "sch: bump power rail to 12 V — Danish, 2 days ago (in review)",
+      release: "not exported yet", boardStatus: "DESIGN",
+      tree: "modules/power-board/\n├── hardware/\n│   ├── power.kicad_sch\n│   ├── power.kicad_pcb\n│   └── release/\n│       └── schematic-v1.pdf\n├── mech/\n│   ├── RC26-PWR-TRAY-v1.step\n│   ├── RC26-PWR-TRAY-v1.pdf\n│   └── parts.yml\n└── README.md",
+      commits: [
+        { lane: "SCH", msg: "Bump power rail to 12 V, update net labels", sha: "f80ca27", files: "3 files · in review", who: "Danish", when: "2 days ago" },
+        { lane: "MECH", msg: "Battery tray STEP + drawing v1", sha: "3ad5e91", files: "3 files · via hub", who: "Farah", when: "1 week ago" },
+        { lane: "PCB", msg: "First layout, 2-layer, fits the tray", sha: "0b6f74c", files: "1 file", who: "Danish", when: "3 weeks ago" },
+        { lane: "SCH", msg: "Fuse and e-stop per rulebook 4.2", sha: "8e3b1a5", files: "1 file", who: "Danish", when: "4 weeks ago" },
+      ],
+    },
+    {
+      name: "Vision Head", path: "modules/vision-head/", slug: "vision-head",
+      lanes: [["SCH", "—"], ["PCB", "—"], ["FW", "v3"], ["MECH", "v2"], ["SIM", "v1"]],
+      lastCommit: "fw: ring-detection confidence threshold — Mei, yesterday (in review)",
+      release: null, boardStatus: null,
+      tree: "modules/vision-head/\n├── firmware/\n│   ├── detect_rings.py\n│   ├── calibrate.py\n│   └── calib/run-12.json\n├── mech/\n│   ├── RC26-VIS-BRACKET-v2.step\n│   ├── RC26-VIS-BRACKET-v2.pdf\n│   └── parts.yml\n├── sim/\n│   ├── bracket_v2.dae\n│   └── camera.urdf.xacro\n└── README.md",
+      commits: [
+        { lane: "FW", msg: "Add ring-detection confidence threshold", sha: "d4e7102", files: "1 file · in review", who: "Mei", when: "yesterday" },
+        { lane: "SIM", msg: "Camera link + FOV cone in the URDF", sha: "2a7f96b", files: "2 files", who: "Mei", when: "6 days ago" },
+        { lane: "MECH", msg: "Camera bracket v2, 10° down-tilt", sha: "51c9b38", files: "3 files · via hub", who: "Aiman", when: "1 week ago" },
+        { lane: "FW", msg: "Calibration run 12, reprojection 0.31 px", sha: "9f2ad60", files: "1 file", who: "Mei", when: "2 weeks ago" },
+        { lane: "MECH", msg: "Camera bracket v1", sha: "7c30f84", files: "3 files · via hub", who: "Aiman", when: "5 weeks ago" },
+      ],
+    },
+  ];
+
+  go = (screen) => () => {
+    const next = { screen, saved: false };
+    if (this.LOC_DEFAULTS[screen]) next.loc = this.LOC_DEFAULTS[screen];
+    this.setState(next);
+    window.scrollTo(0, 0);
+  };
+
+  tag(text, kind) {
+    return React.createElement("span", { className: "tag " + kind, style: { fontSize: "10.5px", whiteSpace: "nowrap" } }, text);
+  }
+
+  renderVals() {
+    const s = this.state;
+    const NAME_RE = /^RC\d{2}-[A-Z]{3}-[A-Z0-9]{2,14}(-[A-Z])?-v\d+$/;
+    const typed = s.name.trim();
+    const valid = NAME_RE.test(typed);
+
+    let nameFeedback;
+    if (!typed) {
+      nameFeedback = React.createElement("span", { className: "text-muted", style: { fontSize: "12.5px" } },
+        "Pattern: RC26-DRV-PART-v1");
+    } else if (valid) {
+      nameFeedback = React.createElement("span", { style: { fontSize: "12.5px", color: "var(--color-accent-700)" } },
+        "✓ matches the convention");
+    } else {
+      const why = [];
+      if (!/^RC\d{2}-/.test(typed)) why.push("start with the season, e.g. RC26-");
+      if (!/-[A-Z]{3}-/.test(typed)) why.push("three-letter subsystem code, e.g. -DRV-");
+      if (!/-v\d+$/.test(typed)) why.push("end with a revision, e.g. -v1");
+      if (/[a-z]/.test(typed)) why.push("uppercase only");
+      if (/\s/.test(typed)) why.push("no spaces — use hyphens");
+      nameFeedback = React.createElement("span", { style: { fontSize: "12.5px", color: "var(--color-accent-800)" } },
+        "Not yet: " + (why.length ? why.join("; ") : "does not match the pattern"));
+    }
+
+    const placeholders = {
+      "GitHub": "https://github.com/rec-robocon/rc26-robot/…",
+      "Hub storage": "drop a file below",
+      "DRIVE-A / B": "/RC26/DRV/WHEELMOD/",
+      "External link": "https://… datasheet, supplier page, video",
+    };
+    const chip = (on) => on
+      ? { fontSize: "13px", background: "var(--color-accent)", color: "#fff", borderColor: "var(--color-accent)" }
+      : { fontSize: "13px", background: "transparent", border: "1px solid var(--color-divider)", color: "var(--color-text)" };
+    const locSet = (list) => list.map((l) => ({
+      label: l,
+      style: chip(s.loc === l),
+      pick: () => this.setState({ loc: l }),
+    }));
+
+    const active = this.MODULES[s.mod];
+    const statuses = ["Concept", "Design", "As-built", "Retired"];
+    const segStyle = (on) => on
+      ? { background: "var(--color-accent)", color: "#fff" }
+      : { background: "transparent" };
+
+    return {
+      isHome: s.screen === "home",
+      isRobot: s.screen === "robot",
+      isSub: s.screen === "sub",
+      isStart: s.screen === "start",
+      isModules: s.screen === "modules",
+      isNew: s.screen === "new",
+      isProg: s.screen === "prog",
+      isElec: s.screen === "elec",
+      isMech: s.screen === "mech",
+      goHome: this.go("home"),
+      goRobot: this.go("robot"),
+      goSub: this.go("sub"),
+      goStart: this.go("start"),
+      goModules: this.go("modules"),
+      goNew: this.go("new"),
+      goProg: this.go("prog"),
+      goElec: this.go("elec"),
+      goMech: this.go("mech"),
+      isNewMod: s.screen === "newmod",
+      goNewMod: this.go("newmod"),
+      nmName: s.nmName,
+      setNmName: (e) => this.setState({ nmName: e.target.value, modCreated: false }),
+      nmLanes: [
+        ["hardware", "Schematic + PCB"],
+        ["firmware", "Firmware"],
+        ["mech", "CAD exports"],
+        ["sim", "Simulation"],
+        ["docs", "Notes"],
+      ].map(([key, label]) => ({
+        label,
+        style: chip(s.nmLanes.indexOf(key) !== -1),
+        toggle: () => this.setState({
+          nmLanes: s.nmLanes.indexOf(key) !== -1
+            ? s.nmLanes.filter((k) => k !== key)
+            : s.nmLanes.concat([key]),
+          modCreated: false,
+        }),
+      })),
+      nmTree: (() => {
+        const slug = this.slug(s.nmName) || "your-module";
+        const order = ["hardware", "firmware", "mech", "sim", "docs"];
+        const picked = order.filter((k) => s.nmLanes.indexOf(k) !== -1);
+        const seeds = {
+          hardware: ["release/", ".gitkeep"],
+          firmware: ["platformio.ini"],
+          mech: ["parts.yml"],
+          sim: [".gitkeep"],
+          docs: [".gitkeep"],
+        };
+        let out = "modules/" + slug + "/\n";
+        picked.forEach((k, i) => {
+          const last = i === picked.length - 1;
+          out += (last ? "└── " : "├── ") + k + "/\n";
+          seeds[k].forEach((file, j) => {
+            const lastFile = j === seeds[k].length - 1;
+            out += (last ? "    " : "│   ") + (lastFile ? "└── " : "├── ") + file + "\n";
+          });
+        });
+        return out + "README.md";
+      })(),
+      createMod: () => this.setState({ modCreated: true }),
+      createModNote: s.modCreated
+        ? React.createElement("span", { style: { fontSize: "13px", color: "var(--color-accent-700)" } },
+            s.nmName.trim()
+              ? "Committed to rc26-robot — " + s.nmLanes.length + " folders, ready for all three departments"
+              : "Name the module first")
+        : React.createElement("span", { className: "text-muted", style: { fontSize: "12.5px" } },
+            "One commit, no new repository"),
+      library: [
+        { key: "canhub", origin: "RC24 → RC25 → RC26", name: "CAN Hub", reuse: "3 SEASONS", lanes: ["SCH", "PCB", "FW"], note: "The bus every board hangs off. Unchanged for two years, which is the strongest signal a design is right." },
+        { key: "motormnt", origin: "RC25", name: "Motor Mount", reuse: "2 SEASONS", lanes: ["MECH", "SIM"], note: "Fits the same gearmotor you are using again this year. Bore already corrected." },
+        { key: "powerdist", origin: "RC24", name: "Power Distribution", reuse: "1 SEASON", lanes: ["SCH", "PCB", "MECH"], note: "Fuse and e-stop arrangement that passed inspection. Check this year's rulebook before trusting it." },
+        { key: "encoder", origin: "RC24 → RC26", name: "Encoder Breakout", reuse: "3 SEASONS", lanes: ["SCH", "PCB", "FW"], note: "Small, reliable, still in production use. Copy it rather than redesigning." },
+      ].map((m) => {
+        const on = s.socketed.indexOf(m.key) !== -1;
+        return {
+          origin: m.origin, name: m.name, reuse: m.reuse, lanes: m.lanes, note: m.note,
+          action: on ? "Socketed into RC26" : "Socket into this season",
+          socket: () => this.setState({
+            socketed: on ? s.socketed.filter((k) => k !== m.key) : s.socketed.concat([m.key]),
+          }),
+        };
+      }),
+
+      copyCmd: (e) => {
+        const block = e.currentTarget.closest("[class*=blueprint]");
+        const code = block && block.querySelector("[data-code]");
+        if (code && navigator.clipboard) navigator.clipboard.writeText(code.textContent);
+      },
+
+      yearValue: s.year,
+      setYear: (e) => this.setState({ year: e.target.value, created: false }),
+      codeValue: s.codename,
+      setCode: (e) => this.setState({ codename: e.target.value, created: false }),
+      prefix: "RC" + (s.year.trim().slice(-2) || "27"),
+      modInput: s.modInput,
+      setModInput: (e) => this.setState({ modInput: e.target.value }),
+      addMod: () => {
+        const n = s.modInput.trim();
+        if (!n) return;
+        this.setState({ draft: s.draft.concat([{ name: n, origin: "NEW" }]), modInput: "", created: false });
+      },
+      draftModules: s.draft.map((d, i) => ({
+        name: d.name,
+        origin: d.origin,
+        path: "modules/" + this.slug(d.name) + "/",
+        remove: () => this.setState({ draft: s.draft.filter((_, j) => j !== i), created: false }),
+      })),
+      carryNote: s.draft.length
+        ? s.draft.filter((d) => d.origin !== "NEW").length + " carried from last season — their README, parts.yml and firmware history come with them, so you start from a working board rather than a blank folder."
+        : "No modules yet. Carry last season's boards over or add your own.",
+      scaffoldTree: "rc" + (s.year.trim().slice(-2) || "27") + "-robot/\n├── modules/\n"
+        + (s.draft.length
+            ? s.draft.map((d) => "│   ├── " + this.slug(d.name) + "/\n│   │   ├── hardware/\n│   │   ├── firmware/\n│   │   ├── mech/\n│   │   └── sim/").join("\n") + "\n"
+            : "│   └── (none yet)\n")
+        + "├── sim/\n│   ├── worlds/arena.world\n│   └── urdf/\n├── docs/\n│   └── rulebook.pdf\n└── README.md",
+      createSeason: () => this.setState({ created: true }),
+      createNote: s.created
+        ? React.createElement("span", { style: { fontSize: "13px", color: "var(--color-accent-700)" } },
+            s.codename.trim()
+              ? "Season " + s.year + " created — " + s.codename.trim().toUpperCase() + " is now the active robot"
+              : "Give the robot a codename first")
+        : React.createElement("span", { className: "text-muted", style: { fontSize: "12.5px" } },
+            s.draft.length + " modules · repo, webhook and drive folders in one go"),
+
+      modules: this.MODULES.map((m, i) => ({
+        name: m.name,
+        path: m.path,
+        lastCommit: m.lastCommit,
+        bg: i === s.mod ? "var(--color-accent-100)" : "transparent",
+        pick: () => this.setState({ mod: i }),
+        lanes: m.lanes.map(([code, state]) => ({
+          code,
+          state,
+          color: state === "\u2014" ? "var(--color-neutral-500)" : "var(--color-accent-700)",
+        })),
+      })),
+      activeName: active.name,
+      activeTree: active.tree,
+      activeVscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git",
+      activeCommits: active.commits.map((c) => ({
+        laneTag: this.tag(c.lane, (c.lane === "MECH" || c.lane === "SIM") ? "tag-accent" : "tag-outline"),
+        msg: c.msg, sha: c.sha, files: c.files, who: c.who, when: c.when,
+      })),
+
+      boards: this.MODULES.filter((m) => m.lanes[0][1] !== "—").map((m) => ({
+        name: m.name,
+        path: m.path + "hardware/",
+        sch: m.lanes[0][1],
+        pcb: m.lanes[1][1],
+        release: m.release,
+        statusTag: this.tag(m.boardStatus, m.boardStatus === "AS-BUILT" ? "tag-accent" : "tag-outline"),
+        vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git",
+      })),
+
+      mechParts: [
+        { name: "RC26-DRV-WHEELMOD-A-v3", title: "Mecanum wheel module", statusTag: this.tag("AS-BUILT", "tag-accent"), master: "DRIVE-A /RC26/DRV/", exports: "STEP + PDF", rev: "v3" },
+        { name: "RC26-DRV-WHEELMOD-A-v4", title: "Bore revision, unmachined", statusTag: this.tag("DESIGN", "tag-outline"), master: "DRIVE-A /RC26/DRV/", exports: "STEP only", rev: "v4" },
+        { name: "RC26-DRV-MOTORMNT-v2", title: "Motor mount bracket", statusTag: this.tag("AS-BUILT", "tag-accent"), master: "DRIVE-A /RC26/DRV/", exports: "STEP + PDF", rev: "v2" },
+        { name: "RC26-ARM-LIFT-v5", title: "Two-stage lift assembly", statusTag: this.tag("AS-BUILT", "tag-accent"), master: "DRIVE-A /RC26/ARM/", exports: "none", rev: "v5" },
+        { name: "RC26-GRP-CLAW-B-v2", title: "Ring claw variant B", statusTag: this.tag("AS-BUILT", "tag-accent"), master: "DRIVE-B /RC26/GRP/", exports: "none", rev: "v2" },
+        { name: "RC26-FRM-BASE-v2", title: "Welded base frame", statusTag: this.tag("AS-BUILT", "tag-accent"), master: "DRIVE-A /RC26/FRM/", exports: "STEP + PDF", rev: "v2" },
+        { name: "RC26-PWR-TRAY-v1", title: "Battery tray", statusTag: this.tag("DESIGN", "tag-outline"), master: "DRIVE-A /RC26/PWR/", exports: "STEP + PDF", rev: "v1" },
+      ],
+
+      isLead: s.role === "lead",
+      isMember: s.role === "member",
+      roleOptions: ["member", "lead"].map((r) => ({
+        label: r === "lead" ? "Lead" : "Member",
+        style: segStyle(s.role === r),
+        pick: () => this.setState({ role: r }),
+      })),
+      reviewIntro: s.role === "lead"
+        ? "Three pull requests need a decision. Merging from here writes to the org repo and logs who approved it."
+        : "Your open requests. A lead has to approve before anything reaches main.",
+      repos: [
+        {
+          name: "rec-robocon/rc26-robot", branch: "main", meta: "updated 4 hours ago",
+          desc: "The whole robot — every module's hardware, firmware, mech exports and sim assets.",
+          web: "https://github.com/rec-robocon/rc26-robot",
+          vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git",
+          copyLabel: s.copied === 0 ? "Copied" : "Copy clone URL",
+          copy: () => this.setState({ copied: 0 }),
+        },
+        {
+          name: "rec-robocon/rc26-vision", branch: "main", meta: "updated 3 weeks ago",
+          desc: "Ring detection and camera calibration. Python, OpenCV. Separate because it runs on the Pi, not a board.",
+          web: "https://github.com/rec-robocon/rc26-vision",
+          vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-vision.git",
+          copyLabel: s.copied === 1 ? "Copied" : "Copy clone URL",
+          copy: () => this.setState({ copied: 1 }),
+        },
+        {
+          name: "rec-robocon/rc-season-template", branch: "main", meta: "template",
+          desc: "The scaffold every new season is created from. Leads only.",
+          web: "https://github.com/rec-robocon/rc-season-template",
+          vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc-season-template.git",
+          copyLabel: s.copied === 2 ? "Copied" : "Copy clone URL",
+          copy: () => this.setState({ copied: 2 }),
+        },
+      ],
+      prs: [
+        { title: "Fix encoder direction on rear-left motor", repo: "drive-controller", author: "Nabil (batch 26/28)", branch: "rc26-drv-encoder-fix", diff: "2 files · +18 −6", when: "4 hours ago", state: "AWAITING LEAD", vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git" },
+        { title: "Add ring-detection confidence threshold", repo: "vision-head", author: "Mei (batch 25/27)", branch: "rc26-vis-threshold", diff: "1 file · +34 −2", when: "yesterday", state: "AWAITING LEAD", vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-vision.git" },
+        { title: "Bump power rail to 12 V, update net labels", repo: "power-board", author: "Danish (batch 25/27)", branch: "rc26-pwr-12v", diff: "3 files · +91 −44", when: "2 days ago", state: "CHANGES REQUESTED", vscode: "vscode://vscode.git/clone?url=https://github.com/rec-robocon/rc26-robot.git" },
+      ],
+      prTitle: s.prTitle,
+      setPrTitle: (e) => this.setState({ prTitle: e.target.value, prSubmitted: false }),
+      branchName: s.prTitle.trim()
+        ? "rc26-" + s.prTitle.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 42)
+        : "rc26-your-change-name",
+      submitPr: () => this.setState({ prSubmitted: true }),
+      prNote: s.prSubmitted
+        ? React.createElement("span", { style: { fontSize: "13px", color: "var(--color-accent-700)" } },
+            s.prTitle.trim() ? "Pull request opened — a lead has been notified" : "Describe the change first")
+        : React.createElement("span", { className: "text-muted", style: { fontSize: "12.5px" } },
+            "Opens against main · reviewer assigned automatically"),
+
+      locOptionsProg: locSet(["GitHub", "Hub storage", "External link"]),
+      locOptionsElec: locSet(["GitHub", "Hub storage", "External link"]),
+      locOptionsMech: locSet(["DRIVE-A / B", "Hub storage"]),
+      isStorage: s.loc === "Hub storage",
+      isLinkLoc: s.loc !== "Hub storage",
+      locPlaceholder: placeholders[s.loc],
+      linkValue: s.link,
+      setLink: (e) => this.setState({ link: e.target.value }),
+      nameValue: s.name,
+      setName: (e) => this.setState({ name: e.target.value, saved: false }),
+      nameFeedback,
+      statusOptions: statuses.map((st) => ({
+        label: st,
+        style: segStyle(s.status === st),
+        pick: () => this.setState({ status: st }),
+      })),
+      save: () => this.setState({ saved: true }),
+      savedNote: s.saved
+        ? React.createElement("span", { style: { fontSize: "13px", color: "var(--color-accent-700)" } },
+            valid ? "Saved to RC26 · Season 2026" : "Fix the name first")
+        : React.createElement("span", { className: "text-muted", style: { fontSize: "12.5px" } }, "Indexed under Season 2026"),
+
+      activity: [
+        { name: "RC26-DRV-WHEELMOD-A-v3", title: "Mecanum wheel module", action: "marked as-built", who: "Aiman", when: "2 days ago" },
+        { name: "RC26-CTL-MAINBOARD-v2", title: "Main control PCB", action: "PCB layout linked", who: "Danish", when: "3 days ago" },
+        { name: "RC26-ARM-LIFT-v5", title: "Two-stage lift assembly", action: "rev added", who: "Hui Xin", when: "4 days ago" },
+        { name: "RC26-VIS-CALIB-LOG", title: "Camera calibration run 12", action: "test log uploaded", who: "Mei", when: "5 days ago" },
+        { name: "RC26-PWR-DIST-v1", title: "Power distribution wiring", action: "diagram replaced", who: "Danish", when: "6 days ago" },
+        { name: "RC26-GRP-CLAW-B-v2", title: "Ring claw variant B", action: "commented", who: "Hui Xin", when: "7 days ago" },
+      ],
+      seasons: [
+        { year: "RC25", robot: "TAPIR", count: 132, result: "6th place" },
+        { year: "RC24", robot: "SILANG", count: 118, result: "2nd place" },
+        { year: "RC23", robot: "BADAK", count: 74, result: "group stage" },
+        { year: "RC22", robot: "unnamed", count: 12, result: "records incomplete" },
+      ],
+      gaps: [
+        { text: "9 as-built parts have no STEP export", detail: "Drivetrain 4 · Arm 3 · Frame 2" },
+        { text: "RC25 firmware repo still on a personal account", detail: "Transfer to the org before Nov" },
+        { text: "RC23 CAD unaccounted for", detail: "Last known on an unlabelled drive" },
+      ],
+      subsystems: [
+        { code: "RC26-DRV", name: "Drivetrain", lead: "Hui Xin", count: 24, disciplines: ["MECH", "CODE"] },
+        { code: "RC26-ARM", name: "Manipulator", lead: "Hui Xin", count: 31, disciplines: ["MECH", "CODE"] },
+        { code: "RC26-GRP", name: "Gripper", lead: "Farah", count: 18, disciplines: ["MECH", "PNEU"] },
+        { code: "RC26-PWR", name: "Power", lead: "Danish", count: 12, disciplines: ["ELEC"] },
+        { code: "RC26-CTL", name: "Control", lead: "Danish", count: 22, disciplines: ["ELEC", "CODE"] },
+        { code: "RC26-VIS", name: "Vision", lead: "Mei", count: 16, disciplines: ["CODE"] },
+        { code: "RC26-PNU", name: "Pneumatics", lead: "Farah", count: 9, disciplines: ["MECH"] },
+        { code: "RC26-FRM", name: "Frame", lead: "Aiman", count: 15, disciplines: ["MECH"] },
+      ],
+      assets: [
+        { name: "RC26-DRV-WHEELMOD-A-v3", title: "Mecanum wheel module", kind: "CAD assembly", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "DRIVE-A /RC26/DRV/", rev: "v3" },
+        { name: "RC26-DRV-WHEELMOD-A-v4", title: "Bore revision, unmachined", kind: "CAD assembly", statusTag: this.tag("DESIGN", "tag-outline"), where: "DRIVE-A /RC26/DRV/", rev: "v4" },
+        { name: "RC26-DRV-WHEELMOD-STEP", title: "STEP export of v3", kind: "Export", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "modules/drive-controller/mech/", rev: "—" },
+        { name: "RC26-DRV-MOTORMNT-v2", title: "Motor mount bracket", kind: "CAD part", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "DRIVE-A /RC26/DRV/", rev: "v2" },
+        { name: "RC26-DRV-ENCODER-v1", title: "Encoder breakout schematic", kind: "Schematic", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "modules/drive-controller/hardware/", rev: "v1" },
+        { name: "RC26-DRV-ODOM-v3", title: "Odometry + mecanum kinematics", kind: "Firmware", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "modules/drive-controller/firmware/", rev: "v3" },
+        { name: "RC26-DRV-PIDTUNE-LOG", title: "PID tuning, 14 runs", kind: "Test log", statusTag: this.tag("NOTES", "tag-neutral"), where: "Hub storage", rev: "—" },
+        { name: "RC26-DRV-WIRING-v2", title: "Motor + encoder harness", kind: "Wiring", statusTag: this.tag("AS-BUILT", "tag-accent"), where: "Hub storage", rev: "v2" },
+      ],
+      versions: [
+        { rev: "v4", note: "Bearing bore widened to 12 mm", meta: "Hui Xin · 24 Aug · design only" },
+        { rev: "v3", note: "Roller spacing fixed, machined", meta: "Hui Xin · 11 Aug · as-built" },
+        { rev: "v2", note: "Switched to 60 mm rollers", meta: "Aiman · 02 Aug · superseded" },
+        { rev: "v1", note: "First pass, carried from RC25", meta: "Hui Xin · 21 Jul · superseded" },
+      ],
+      reuse: [
+        { name: "RC24-DRV-HUB-v2", note: "Same bore problem, solved with a shoulder step" },
+        { name: "RC25-DRV-MOTORMNT-v4", note: "Mount pattern reused unchanged this year" },
+        { name: "RC24-CTL-ENCODER-v1", note: "Encoder breakout, still in production use" },
+      ],
+      steps: [
+        { n: "01", title: "Sign in with your student Google account", body: "Your batch year and role come from the member list. Juniors can read everything and comment; leads can add and edit." },
+        { n: "02", title: "Open last season's robot and read one subsystem end to end", body: "Pick the one closest to what you will work on. Read the test logs, not just the CAD — the logs are where the reasoning is." },
+        { n: "03", title: "Go to your department page and read the naming rule", body: "One pattern for every file, folder and repo. The field checks what you type, so learn it before you make a single file." },
+        { n: "04", title: "Know where the three kinds of thing live", body: "Code, schematics and exports in the club GitHub org, one folder per module. CAD masters on the two labelled drives. Logs, photos and datasheets in the hub itself." },
+        { n: "05", title: "Add one item this week", body: "Anything — a datasheet, a photo, a note from a meeting. The habit matters more than the item." },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>
