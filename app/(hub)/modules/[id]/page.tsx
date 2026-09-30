@@ -6,12 +6,13 @@ import { AssetFlags, Box, Empty, LaneGrid, PageHead, StatusTag, Tag } from "@/co
 import { displayName, requireMember } from "@/lib/auth";
 import { GithubNotice } from "@/components/github-notice";
 import { ProposalList } from "@/components/proposal-list";
+import { VersionHistory } from "@/components/version-history";
 import { WorkOnModule } from "@/components/work-on-module";
 import { loadProposals } from "@/lib/proposals";
 import { loadEvents, loadLineage, loadMembers, memberMap, moduleFolder } from "@/lib/data";
 import { DISCIPLINE_PATH, shortDate, STATUS_LABEL, timeAgo, vscodeClone } from "@/lib/format";
 import { laneStates } from "@/lib/health";
-import type { AssetHealth, Module, Robot, Season, Subsystem } from "@/lib/types";
+import type { AssetHealth, Module, ModuleVersion, Robot, Season, Subsystem } from "@/lib/types";
 import { LANES, STATUSES } from "@/lib/types";
 
 type ModuleRow = Module & { subsystems: Subsystem & { robots: Robot & { seasons: Season } } };
@@ -25,12 +26,17 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
   const m = data as ModuleRow;
   const season = m.subsystems.robots.seasons;
 
-  const [{ data: assetRows }, lineage, members] = await Promise.all([
+  const [{ data: assetRows }, { data: versionRows }, lineage, members] = await Promise.all([
     supabase.from("asset_health").select("*").eq("module_id", id).order("name"),
+    supabase.from("module_versions").select("*").eq("module_id", id).order("number"),
     loadLineage(supabase, m),
     loadMembers(supabase),
   ]);
   const assets = (assetRows as AssetHealth[] | null) ?? [];
+  const versions = (versionRows as ModuleVersion[] | null) ?? [];
+  const itemCount = new Map<number, number>();
+  for (const a of assets) if (a.version_number) itemCount.set(a.version_number, (itemCount.get(a.version_number) ?? 0) + 1);
+  const currentVersion = versions.find((v) => v.number === m.current_version);
   const events = await loadEvents(supabase, { moduleIds: [m.id, ...lineage.map((l) => l.id)], limit: 100 });
   const [requests, { data: workspaces }, { data: myKey }] = await Promise.all([
     loadProposals(supabase, { moduleId: m.id, limit: 10 }),
@@ -50,9 +56,13 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
         <Link href={`/season/${season.year}/${robot.code}/${m.subsystems.code}`}>{m.subsystems.code}</Link> / <Link href="/modules">Modules</Link>
       </div>
       <PageHead
-        kicker={<span className="mono accent-text" style={{ letterSpacing: 0, textTransform: "none", fontSize: 13 }}>{folder}</span>}
-        title={m.name}
-        sub={m.description ?? undefined}
+        kicker={
+          <span className="mono accent-text" style={{ letterSpacing: 0, textTransform: "none", fontSize: 13 }}>
+            {m.name}-v{m.current_version} · {folder}
+          </span>
+        }
+        title={m.description || m.name}
+        sub={currentVersion ? `Now on v${currentVersion.number}: ${currentVersion.mechanism}` : undefined}
         actions={
           <>
             <StatusTag status={m.status} />
@@ -75,8 +85,18 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
 
       <div className="split" style={{ ["--side" as string]: "340px" }}>
         <div>
+          <VersionHistory
+            moduleId={m.id}
+            moduleName={m.name}
+            current={m.current_version}
+            versions={versions}
+            itemCount={itemCount}
+            people={people}
+            editable={season.is_active}
+          />
+
           <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-            <h4 style={{ margin: 0 }}>Assets</h4>
+            <h4 style={{ margin: 0 }}>Items</h4>
             <div className="row">
               <Link className="btn btn-secondary" href={`${DISCIPLINE_PATH.mech}?module=${m.id}#add`}>Add mechanical</Link>
               <Link className="btn btn-secondary" href={`${DISCIPLINE_PATH.elec}?module=${m.id}#add`}>Add electronics</Link>
@@ -92,21 +112,19 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
                     <th>Name</th>
                     <th>Kind</th>
                     <th>Status</th>
-                    <th>Rev</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {assets.map((a) => (
-                    <tr key={a.id}>
+                  {[...assets].sort((x, y) => (y.version_number ?? 0) - (x.version_number ?? 0) || x.name.localeCompare(y.name)).map((a) => (
+                    <tr key={a.id} style={a.version_number !== m.current_version ? { opacity: 0.6 } : undefined}>
                       <td><Tag kind={a.lane === "MECH" || a.lane === "SIM" ? "accent" : "outline"}>{a.lane ?? "—"}</Tag></td>
                       <td>
                         <Link href={`/assets/${a.id}`} className="mono">{a.name}</Link>
-                        <div className="text-muted small">{a.title}</div>
+                        <div className="small">{a.title}</div>
                         <div className="flags"><AssetFlags asset={a} /></div>
                       </td>
                       <td className="text-muted small">{a.kind}</td>
                       <td><StatusTag status={a.status} /></td>
-                      <td className="text-muted small">{a.revision ? `v${a.revision}` : "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -192,7 +210,7 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
           </Box>
 
           <Box className="pad">
-            <h5 style={{ margin: "0 0 10px" }}>Lanes, notes &amp; parts.yml</h5>
+            <h5 style={{ margin: "0 0 10px" }}>Lanes, description &amp; parts.yml</h5>
             <ActionForm action={updateModule} className="form" style={{ gap: 12 }}>
               <input type="hidden" name="module_id" value={m.id} />
               <div className="chips">
@@ -202,7 +220,7 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
                   </label>
                 ))}
               </div>
-              <input name="description" className="input" defaultValue={m.description ?? ""} placeholder="One line about it" />
+              <input name="description" className="input" defaultValue={m.description ?? ""} placeholder="What does it do?" required aria-label="What it does" />
               <textarea name="parts_yml" className="input mono" rows={8} defaultValue={m.parts_yml ?? ""} style={{ fontSize: 12 }} />
               <div className="hint" style={{ marginTop: 0 }}>
                 <span className="mono">parts.yml</span> names each part and its drive path, so the repo knows what the
@@ -221,7 +239,7 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
               {lineage.map((l) => (
                 <div key={l.id} className="history-row" style={{ gridTemplateColumns: "52px 1fr" }}>
                   <div className="lane-col">{l.prefix}</div>
-                  <div className="small"><Link href={`/modules/${l.id}`}>{l.name}</Link> · {STATUS_LABEL[l.status]}</div>
+                  <div className="small"><Link href={`/modules/${l.id}`} className="mono">{l.name}</Link> · {STATUS_LABEL[l.status]}</div>
                 </div>
               ))}
             </Box>

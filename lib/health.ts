@@ -46,7 +46,7 @@ export function seasonGaps(
   if (empty.length)
     gaps.push({
       text: `${empty.length} ${plural(empty.length, "module has", "modules have")} nothing recorded yet`,
-      detail: empty.slice(0, 4).map((m) => m.name).join(" · "),
+      detail: empty.slice(0, 4).map((m) => m.description || m.name).join(" · "),
       href: `/modules/${empty[0].id}`,
     });
 
@@ -54,7 +54,7 @@ export function seasonGaps(
   if (stale.length)
     gaps.push({
       text: `${stale.length} ${plural(stale.length, "module", "modules")} untouched for ${STALE_DAYS}+ days`,
-      detail: stale.slice(0, 4).map((m) => m.name).join(" · "),
+      detail: stale.slice(0, 4).map((m) => m.description || m.name).join(" · "),
       href: `/modules/${stale[0].id}`,
     });
 

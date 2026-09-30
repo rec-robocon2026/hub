@@ -6,7 +6,6 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireLead, requireMember } from "@/lib/auth";
 import { syncModule, syncRobot, syncSeason } from "@/lib/github-sync";
-import { checkName, revisionOf, slugify } from "@/lib/naming";
 import type { ActionResult, Discipline, Lane, Location, Role, Status } from "@/lib/types";
 import { LANES, STATUSES } from "@/lib/types";
 
@@ -195,24 +194,27 @@ export async function addCode(_: State, fd: FormData): Promise<ActionResult> {
 
 export async function createModule(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireMember();
-  const name = str(fd, "name");
-  const slug = slugify(name);
-  if (!slug) return { ok: false, message: "Name the module first." };
+  const description = str(fd, "description");
+  const mechanism = str(fd, "mechanism");
+  if (!description) return { ok: false, message: "Say what the module does — the hub names it for you." };
+  if (!mechanism) return { ok: false, message: "Describe how version 1 works." };
   const lanes = fd.getAll("lanes").map(String).filter((l): l is Lane => LANES.includes(l as Lane));
 
+  // name and slug are placeholders: the database replaces them with the next code, e.g. RC26-R1-GRP-03 / grp-03.
   const { data, error } = await supabase
     .from("modules")
     .insert({
       subsystem_id: str(fd, "subsystem_id"),
-      name,
-      slug,
+      name: "-",
+      slug: "x",
       lanes,
-      description: opt(fd, "description"),
+      description,
       parts_yml: "# one entry per part: name, drive path, revision\nparts: []\n",
     })
     .select("id")
     .single();
   if (error) return fail(error);
+  await supabase.from("module_versions").update({ mechanism }).eq("module_id", data.id).eq("number", 1);
   const gh = await syncModule(supabase, data.id);
   revalidatePath("/", "layout");
   redirect(`/modules/${data.id}?${ghParam(gh)}`);
@@ -244,23 +246,24 @@ export async function carryModule(_: State, fd: FormData): Promise<ActionResult>
     .from("modules")
     .insert({
       subsystem_id: sub.id,
-      name: src.name,
-      slug: src.slug,
+      name: "-",
+      slug: "x",
       description: src.description,
       lanes: src.lanes,
       parts_yml: src.parts_yml,
       carried_from: src.id,
     })
-    .select("id")
+    .select("id, name")
     .single();
   if (error) return fail(error);
   const gh = await syncModule(supabase, created.id);
-  return done(`${src.name} socketed onto ${season.prefix}-${robot.code} · ${gh.note}`);
+  return done(`${src.name} socketed onto ${season.prefix}-${robot.code} as ${created.name} · ${gh.note}`);
 }
 
 export async function updateModule(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireMember();
   const lanes = fd.getAll("lanes").map(String).filter((l): l is Lane => LANES.includes(l as Lane));
+  if (!str(fd, "description")) return { ok: false, message: "Keep a description — it's how people recognise the module." };
   const { error } = await supabase
     .from("modules")
     .update({ description: opt(fd, "description"), parts_yml: opt(fd, "parts_yml"), lanes })
@@ -298,15 +301,52 @@ export async function deleteModule(fd: FormData) {
   redirect("/modules");
 }
 
+// ─── Versions: one per mechanism ────────────────────────────────────────────
+
+/** A new mechanism for the module. It becomes current; new items land on it. */
+export async function startVersion(_: State, fd: FormData): Promise<ActionResult> {
+  const { supabase } = await requireMember();
+  const mechanism = str(fd, "mechanism");
+  if (!mechanism) return { ok: false, message: "Describe the new mechanism." };
+  const { data, error } = await supabase
+    .from("module_versions")
+    .insert({ module_id: str(fd, "module_id"), mechanism, why: opt(fd, "why") })
+    .select("number")
+    .single();
+  if (error) return fail(error);
+  const outcome = str(fd, "previous_outcome");
+  if (outcome)
+    await supabase.from("module_versions").update({ outcome }).eq("module_id", str(fd, "module_id")).eq("number", data.number - 1);
+  return done(`Started v${data.number} — new items go there`);
+}
+
+export async function updateVersion(_: State, fd: FormData): Promise<ActionResult> {
+  const { supabase } = await requireMember();
+  const mechanism = str(fd, "mechanism");
+  if (!mechanism) return { ok: false, message: "Keep the mechanism description." };
+  const { error } = await supabase
+    .from("module_versions")
+    .update({ mechanism, why: opt(fd, "why"), outcome: opt(fd, "outcome") })
+    .eq("id", str(fd, "version_id"));
+  if (error) return fail(error);
+  return done("Saved");
+}
+
+/** Go back to an earlier mechanism (or forward again). Logged in the module's history. */
+export async function setCurrentVersion(fd: FormData) {
+  const { supabase } = await requireMember();
+  await supabase.from("modules").update({ current_version: Number(str(fd, "number")) }).eq("id", str(fd, "module_id"));
+  revalidatePath("/", "layout");
+}
+
 // ─── Assets ─────────────────────────────────────────────────────────────────
 
 export async function createAsset(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase, isLead } = await requireMember();
-  const name = str(fd, "name").toUpperCase().replace(/-V(\d+)$/, "-v$1");
   const status = (str(fd, "status") || "design") as Status;
   const location = str(fd, "location") as Location;
-  if (!name) return { ok: false, message: "Name it first." };
   if (!str(fd, "module_id")) return { ok: false, message: "Pick the module it belongs to." };
+  if (!str(fd, "title")) return { ok: false, message: "Describe what it is — the hub names it for you." };
   if (status === "as_built" && !isLead) return { ok: false, message: "Only leads can mark something as-built." };
   if (location === "drive" && !str(fd, "drive_id")) return { ok: false, message: "Pick which drive the master is on." };
   if ((location === "github" || location === "link") && !str(fd, "url"))
@@ -316,7 +356,8 @@ export async function createAsset(_: State, fd: FormData): Promise<ActionResult>
     .from("assets")
     .insert({
       module_id: str(fd, "module_id"),
-      name,
+      version_id: opt(fd, "version_id"),
+      name: "-", // replaced by the database: RC26-R1-GRP-03-v2-ASM
       title: opt(fd, "title"),
       kind: str(fd, "kind"),
       discipline: str(fd, "discipline") as Discipline,
@@ -325,35 +366,33 @@ export async function createAsset(_: State, fd: FormData): Promise<ActionResult>
       drive_id: location === "drive" ? opt(fd, "drive_id") : null,
       path: opt(fd, "path"),
       url: location === "github" || location === "link" ? opt(fd, "url") : null,
-      revision: revisionOf(name),
       status,
       notes: opt(fd, "notes"),
     })
-    .select("id")
+    .select("id, name")
     .single();
   if (error) return fail(error);
-
-  const check = checkName(name, str(fd, "prefix"), str(fd, "code"));
-  return done(check.ok ? `Saved ${name}` : `Saved ${name} — flagged: name doesn't follow the rule`, data.id);
+  return done(`Saved as ${data.name}`, data.id);
 }
 
 export async function updateAsset(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireMember();
-  const name = str(fd, "name");
-  const { error } = await supabase
+  if (!str(fd, "title")) return { ok: false, message: "Keep a description." };
+  const { data, error } = await supabase
     .from("assets")
     .update({
-      name,
       title: opt(fd, "title"),
       path: opt(fd, "path"),
       url: opt(fd, "url"),
       drive_id: opt(fd, "drive_id"),
       notes: opt(fd, "notes"),
-      revision: revisionOf(name),
+      ...(str(fd, "version_id") ? { version_id: str(fd, "version_id") } : {}),
     })
-    .eq("id", str(fd, "asset_id"));
+    .eq("id", str(fd, "asset_id"))
+    .select("name")
+    .single();
   if (error) return fail(error);
-  return done("Saved");
+  return done(`Saved · ${data.name}`);
 }
 
 export async function setAssetStatus(_: State, fd: FormData): Promise<ActionResult> {

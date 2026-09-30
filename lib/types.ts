@@ -62,6 +62,8 @@ export type Module = {
   subsystem_id: string;
   name: string;
   slug: string;
+  number: number;
+  current_version: number;
   description: string | null;
   status: Status;
   lanes: Lane[];
@@ -73,9 +75,22 @@ export type Module = {
   updated_at: string;
 };
 
+/** One mechanism tried for a module: v1 servo claw, v2 suction cup … */
+export type ModuleVersion = {
+  id: string;
+  module_id: string;
+  number: number;
+  mechanism: string;
+  why: string | null;
+  outcome: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
 export type Asset = {
   id: string;
   module_id: string;
+  version_id: string | null;
   name: string;
   title: string | null;
   kind: string;
@@ -105,6 +120,10 @@ export type AssetHealth = Asset & {
   subsystem_code: string;
   module_name: string;
   module_slug: string;
+  module_description: string | null;
+  module_current_version: number;
+  version_number: number | null;
+  version_mechanism: string | null;
   has_step: boolean;
   has_pdf: boolean;
   name_ok: boolean;

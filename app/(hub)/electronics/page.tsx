@@ -62,8 +62,8 @@ export default async function ElectronicsPage({ searchParams }: PageProps<"/elec
               {boards.map(({ m, sch, pcb, release }) => (
                 <tr key={m.id}>
                   <td>
-                    <Link href={`/modules/${m.id}`}>{m.name}</Link>
-                    <div className="text-muted mono" style={{ fontSize: 11.5 }}>{moduleFolder(robotCode(m), m.slug)}hardware/</div>
+                    <Link href={`/modules/${m.id}`}>{m.description || m.name}</Link>
+                    <div className="text-muted mono" style={{ fontSize: 11.5 }}>{m.name} · {moduleFolder(robotCode(m), m.slug)}hardware/</div>
                   </td>
                   <td className="text-muted small">{sch}</td>
                   <td className="text-muted small">{pcb}</td>

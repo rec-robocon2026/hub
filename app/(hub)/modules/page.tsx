@@ -80,10 +80,11 @@ export default async function ModulesPage({ searchParams }: PageProps<"/modules"
             return (
               <LinkCard key={m.id} href={`/modules/${m.id}`}>
                 <div className="row" style={{ justifyContent: "space-between" }}>
-                  <div className="mono accent-text" style={{ fontSize: 12 }}>{moduleFolder(sub?.robotCode ?? "", m.slug)}</div>
+                  <div className="mono accent-text" style={{ fontSize: 12 }}>{m.name}-v{m.current_version}</div>
                   <Tag kind={sub?.robotCode === "RD" ? "outline" : "neutral"}>{sub?.robotCode}·{sub?.code}</Tag>
                 </div>
-                <div className="card-title big">{m.name}</div>
+                <div className="card-title big">{m.description || m.name}</div>
+                <div className="text-muted mono" style={{ fontSize: 11.5 }}>{moduleFolder(sub?.robotCode ?? "", m.slug)}</div>
                 <LaneGrid lanes={laneStates(m, bundle.assets, events)} />
                 <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
                   {last
@@ -116,11 +117,11 @@ export default async function ModulesPage({ searchParams }: PageProps<"/modules"
           {library.map((m) => (
             <Box key={m.id} className="pad">
               <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
-                <div className="mono accent-text" style={{ fontSize: 12 }}>{m.origin}</div>
+                <div className="mono accent-text" style={{ fontSize: 12 }}>{m.name}-v{m.current_version}</div>
                 <Tag kind="neutral">{m.code}</Tag>
               </div>
               <Link href={`/modules/${m.id}`} style={{ color: "inherit", textDecoration: "none" }}>
-                <div className="card-title big" style={{ margin: "4px 0 8px" }}>{m.name}</div>
+                <div className="card-title big" style={{ margin: "4px 0 8px" }}>{m.description || m.name}</div>
               </Link>
               <div className="text-muted small" style={{ lineHeight: 1.55, marginBottom: 12 }}>{m.proven_note ?? m.description ?? "No note."}</div>
               <div className="row" style={{ gap: 6, marginBottom: 14 }}>

@@ -8,8 +8,7 @@ import { displayName, requireMember } from "@/lib/auth";
 import { loadDrives, loadMembers, memberMap } from "@/lib/data";
 import { DISCIPLINES, LOCATION_LABEL } from "@/lib/disciplines";
 import { DISCIPLINE_LABEL, fileSize, shortDate, STATUS_LABEL, timeAgo } from "@/lib/format";
-import { checkName } from "@/lib/naming";
-import type { AssetFile, AssetHealth } from "@/lib/types";
+import type { AssetFile, AssetHealth, ModuleVersion } from "@/lib/types";
 import { STATUSES } from "@/lib/types";
 
 export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
@@ -19,17 +18,18 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
   if (!data) notFound();
   const a = data as AssetHealth;
 
-  const [{ data: fileRows }, drives, members, events] = await Promise.all([
+  const [{ data: fileRows }, drives, members, events, { data: versionRows }] = await Promise.all([
     supabase.from("asset_files").select("*").eq("asset_id", id).order("created_at", { ascending: false }),
     loadDrives(supabase),
     loadMembers(supabase),
     supabase.from("events").select("*").eq("asset_id", id).order("created_at", { ascending: false }).limit(30),
+    supabase.from("module_versions").select("*").eq("module_id", a.module_id).order("number"),
   ]);
+  const versions = (versionRows as ModuleVersion[] | null) ?? [];
   const files = (fileRows as AssetFile[] | null) ?? [];
   const people = memberMap(members);
   const drive = drives.find((d) => d.id === a.drive_id);
   const cfg = DISCIPLINES[a.discipline];
-  const naming = checkName(a.name, `${a.season_prefix}-${a.robot_code}`, a.subsystem_code);
   const isMaster = a.location === "drive";
 
   return (
@@ -38,9 +38,10 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
         <Link href={`/season/${a.season_year}`}>{a.season_prefix}</Link> / {a.robot_code} /{" "}
         <Link href={`/season/${a.season_year}/${a.robot_code}/${a.subsystem_code}`}>{a.subsystem_code}</Link> /{" "}
         <Link href={`/modules/${a.module_id}`}>{a.module_name}</Link>
+        {a.module_description ? <> · {a.module_description}</> : null}
       </div>
       <PageHead
-        kicker={`${DISCIPLINE_LABEL[a.discipline]} · ${a.kind}`}
+        kicker={`${DISCIPLINE_LABEL[a.discipline]} · ${a.kind}${a.version_number ? ` · v${a.version_number}${a.version_number === a.module_current_version ? " (current)" : " (older version)"}` : ""}`}
         title={<span className="mono" style={{ fontSize: "0.7em", letterSpacing: 0 }}>{a.name}</span>}
         sub={a.title ?? undefined}
         actions={
@@ -54,13 +55,10 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
 
       <div className="split" style={{ ["--side" as string]: "340px" }}>
         <div className="stack" style={{ gap: 28 }}>
-          {!naming.ok && (
+          {a.version_mechanism && (
             <Box tint className="pad">
-              <h5 style={{ margin: "0 0 6px" }}>This name is flagged</h5>
-              <div className="small">
-                {naming.problems.join("; ")}. Expected something like{" "}
-                <span className="mono">{a.season_prefix}-{a.robot_code}-{a.subsystem_code}-PART-v1</span>. Fix it in the form on the right.
-              </div>
+              <h5 style={{ margin: "0 0 6px" }}>Version {a.version_number}</h5>
+              <div className="small">{a.version_mechanism}</div>
             </Box>
           )}
 
@@ -195,13 +193,20 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
             <ActionForm action={updateAsset} className="form" style={{ gap: 10 }}>
               <input type="hidden" name="asset_id" value={a.id} />
               <div className="field">
-                <label>Name</label>
-                <input name="name" className="input mono" defaultValue={a.name} required />
-              </div>
-              <div className="field">
                 <label>What is it?</label>
-                <input name="title" className="input" defaultValue={a.title ?? ""} />
+                <input name="title" className="input" defaultValue={a.title ?? ""} required />
               </div>
+              {versions.length > 1 && (
+                <div className="field">
+                  <label>Version</label>
+                  <select name="version_id" className="input" defaultValue={a.version_id ?? ""}>
+                    {[...versions].reverse().map((v) => (
+                      <option key={v.id} value={v.id}>v{v.number} — {v.mechanism}</option>
+                    ))}
+                  </select>
+                  <div className="hint">Filed under the wrong mechanism? Moving it renames it to match.</div>
+                </div>
+              )}
               {isMaster ? (
                 <>
                   <div className="field">

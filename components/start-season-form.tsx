@@ -5,7 +5,7 @@ import { startSeason } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { Box, Tag } from "@/components/ui";
 
-type LibraryItem = { id: string; name: string; slug: string; code: string; origin: string; note: string | null };
+type LibraryItem = { id: string; name: string; description: string | null; slug: string; code: string; origin: string; note: string | null };
 type RobotRow = { key: number; codename: string; description: string };
 
 export function StartSeasonForm({
@@ -167,7 +167,7 @@ export function StartSeasonForm({
                   <label key={m.id} className="file-row check" style={{ fontSize: 14 }}>
                     <span className="row">
                       <input type="checkbox" name="carry" value={m.id} checked={carry.includes(m.id)} onChange={() => toggle(carry, setCarry, m.id)} />
-                      {m.name}
+                      <span className="mono">{m.name}</span> {m.description}
                     </span>
                     <span className="row">
                       <Tag kind="neutral">{m.code}</Tag>

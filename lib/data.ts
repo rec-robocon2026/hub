@@ -5,6 +5,7 @@ import type {
   HubEvent,
   Member,
   Module,
+  ModuleVersion,
   Robot,
   Season,
   Subsystem,
@@ -19,6 +20,8 @@ export type SeasonBundle = {
   robots: Robot[];
   subsystems: SubsystemRow[];
   modules: Module[];
+  /** Every version of every module in the season, oldest first. */
+  versions: ModuleVersion[];
   assets: AssetHealth[];
 };
 
@@ -51,6 +54,7 @@ export async function loadSeason(supabase: SupabaseClient, year?: number): Promi
 
   let subsystems: SubsystemRow[] = [];
   let modules: Module[] = [];
+  let versions: ModuleVersion[] = [];
   if (robots.length) {
     const { data: subs } = await supabase.from("subsystems").select("*").in("robot_id", robots.map((r) => r.id));
     const codeInfo = new Map((codes as SubsystemCode[] | null)?.map((c) => [c.code, c]) ?? []);
@@ -71,6 +75,14 @@ export async function loadSeason(supabase: SupabaseClient, year?: number): Promi
         .in("subsystem_id", subsystems.map((s) => s.id))
         .order("name");
       modules = (mods as Module[] | null) ?? [];
+      if (modules.length) {
+        const { data: vers } = await supabase
+          .from("module_versions")
+          .select("*")
+          .in("module_id", modules.map((m) => m.id))
+          .order("number");
+        versions = (vers as ModuleVersion[] | null) ?? [];
+      }
     }
   }
 
@@ -79,6 +91,7 @@ export async function loadSeason(supabase: SupabaseClient, year?: number): Promi
     robots,
     subsystems,
     modules,
+    versions,
     assets: (assets as AssetHealth[] | null) ?? [],
   };
 }
@@ -188,7 +201,10 @@ export function moduleOptions(bundle: SeasonBundle | null) {
       return {
         id: m.id,
         name: m.name,
+        description: m.description ?? "",
         slug: m.slug,
+        current: m.current_version,
+        versions: bundle.versions.filter((v) => v.module_id === m.id).map((v) => ({ id: v.id, number: v.number, mechanism: v.mechanism })),
         code: s?.code ?? "",
         robot: s?.robotCode ?? "",
         prefix: `${bundle.season.prefix}-${s?.robotCode ?? ""}`,

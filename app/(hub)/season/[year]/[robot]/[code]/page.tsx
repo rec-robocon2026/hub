@@ -59,8 +59,8 @@ export default async function SubsystemPage({ params, searchParams }: PageProps<
             <div className="grid" style={{ ["--min" as string]: "240px", marginBottom: 32 }}>
               {mods.map((m) => (
                 <LinkCard key={m.id} href={`/modules/${m.id}`}>
-                  <div className="mono accent-text" style={{ fontSize: 12 }}>{moduleFolder(robot.code, m.slug)}</div>
-                  <div className="card-title">{m.name}</div>
+                  <div className="mono accent-text" style={{ fontSize: 12 }}>{m.name}-v{m.current_version} · {moduleFolder(robot.code, m.slug)}</div>
+                  <div className="card-title">{m.description || m.name}</div>
                   <LaneGrid lanes={laneStates(m, bundle.assets, events)} />
                 </LinkCard>
               ))}
@@ -145,6 +145,7 @@ export default async function SubsystemPage({ params, searchParams }: PageProps<
                 {carried.map((m) => (
                   <Box key={m.id} className="gap-item">
                     <Link href={`/modules/${m.id}`} className="mono">{m.name}</Link>
+                    <div className="small">{m.description}</div>
                     <div className="text-muted small">from a past season or the R&amp;D bench — history kept</div>
                   </Box>
                 ))}

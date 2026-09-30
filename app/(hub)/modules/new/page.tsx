@@ -40,11 +40,12 @@ export default async function NewModulePage({ searchParams }: PageProps<"/module
         <NewModuleForm
           subsystems={bundle.subsystems.map((s) => {
             const robot = bundle.robots.find((r) => r.id === s.robot_id);
-            return { id: s.id, code: s.code, name: s.name, robot: s.robotCode, robotName: robot?.kind === "rnd" ? "R&D bench" : (robot?.codename ?? "") };
+            const next = Math.max(0, ...bundle.modules.filter((m) => m.subsystem_id === s.id).map((m) => m.number)) + 1;
+            return { id: s.id, code: s.code, name: s.name, robot: s.robotCode, robotName: robot?.kind === "rnd" ? "R&D bench" : (robot?.codename ?? ""), next };
           })}
           defaultSubsystem={typeof subsystem === "string" ? subsystem : undefined}
           repo={bundle.season.repo ?? bundle.season.prefix}
-          taken={bundle.modules.map((m) => `${m.subsystem_id}/${m.slug}`)}
+          prefix={bundle.season.prefix}
         />
       )}
     </main>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { createModule } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { Box } from "@/components/ui";
-import { slugify } from "@/lib/naming";
+import { moduleCode } from "@/lib/naming";
 import type { Lane } from "@/lib/types";
 
 const LANE_OPTIONS: { lane: Lane; label: string; folder: string; seed: string }[] = [
@@ -19,23 +19,24 @@ export function NewModuleForm({
   subsystems,
   defaultSubsystem,
   repo,
-  taken,
+  prefix,
 }: {
-  subsystems: { id: string; code: string; name: string; robot: string; robotName: string }[];
+  /** next: the number the next module in that subsystem gets. */
+  subsystems: { id: string; code: string; name: string; robot: string; robotName: string; next: number }[];
   defaultSubsystem?: string;
   repo: string;
-  taken: string[];
+  prefix: string;
 }) {
-  const [name, setName] = useState("");
   const [subsystemId, setSubsystemId] = useState(defaultSubsystem ?? subsystems[0].id);
   const [lanes, setLanes] = useState<Lane[]>(["SCH", "PCB", "FW", "MECH"]);
-  const slug = slugify(name);
-  const clash = slug && taken.includes(`${subsystemId}/${slug}`);
-  const robot = subsystems.find((s) => s.id === subsystemId)?.robot ?? "R1";
+  const sub = subsystems.find((s) => s.id === subsystemId) ?? subsystems[0];
+  const robot = sub.robot;
+  const code = moduleCode(prefix, sub.robot, sub.code, sub.next);
+  const slug = `${sub.code.toLowerCase()}-${String(sub.next).padStart(2, "0")}`;
 
   const folders = [...new Set(LANE_OPTIONS.filter((o) => lanes.includes(o.lane)).map((o) => o.folder))];
   const tree =
-    `${robot}/${slug || "your-module"}/\n` +
+    `${robot}/${slug}/\n` +
     folders
       .map((f, i) => {
         const last = i === folders.length - 1;
@@ -55,12 +56,9 @@ export function NewModuleForm({
         <div className="form">
           <h4 style={{ margin: 0 }}>Build from scratch</h4>
           <div className="field">
-            <label htmlFor="name">What is it?</label>
-            <input id="name" name="name" className="input" placeholder="e.g. Gripper Controller" value={name} onChange={(e) => setName(e.target.value)} required />
-            <div className="hint">
-              Name it after the physical block, not the discipline. “Gripper Controller”, not “Gripper PCB”.
-              {clash && <span className="note-err"> A module with this name already exists in that subsystem.</span>}
-            </div>
+            <label htmlFor="description">What does it do?</label>
+            <input id="description" name="description" className="input" placeholder="e.g. Grabs the rice sack from the rack and holds it while driving" required />
+            <div className="hint">Describe the job, not the part. The hub gives it its name.</div>
           </div>
           <div className="field">
             <label htmlFor="subsystem_id">Robot and subsystem</label>
@@ -101,11 +99,22 @@ export function NewModuleForm({
             <div className="hint">An unused lane shows as “—”; a picked lane with nothing in it gets flagged as empty. You can change this later.</div>
           </div>
           <div className="field">
-            <label htmlFor="description">One line about it</label>
-            <input id="description" name="description" className="input" placeholder="Splits the CAN bus to every board, with termination." />
+            <label htmlFor="mechanism">Version 1 — how does it work?</label>
+            <input id="mechanism" name="mechanism" className="input" placeholder="e.g. Two-finger claw on an MG996R servo" required />
+            <div className="hint">
+              Each version is one mechanism. When you switch to a different one (say, a suction cup), start v2 on the module
+              page — v1 and everything filed under it stay in the history.
+            </div>
+          </div>
+          <div className="field">
+            <label>Its name</label>
+            <div className="mono accent-text" style={{ fontSize: 18 }}>{code}</div>
+            <div className="hint">
+              Set by the hub: season · robot · subsystem · next number. Files in it are named {code}-v1-ASM, {code}-v1-FW …
+            </div>
           </div>
           <div className="form-actions">
-            <Submit primary pendingText="Creating…" disabled={!!clash}>Create module</Submit>
+            <Submit primary pendingText="Creating…">Create {code}</Submit>
             <FormNotice />
           </div>
         </div>

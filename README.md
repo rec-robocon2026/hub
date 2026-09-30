@@ -6,11 +6,15 @@ A living index of the club's robot, one season at a time: what exists, where it'
 
 ```
 Season 2026 (RC26)        GitHub: rec-robocon2026/RC26
-├── R1 KANCIL             ├── R1/claw/{hardware,firmware,mech,sim}/
+├── R1 KANCIL             ├── R1/grp-03/{hardware,firmware,mech,sim}/
 ├── R2 TAPIR              ├── R2/…
 └── RD R&D bench          └── RD/…
-File names: RC26-R1-GRP-CLAW-v2 — season · robot · subsystem · part · revision
+Module:  RC26-R1-GRP-03            season · robot · subsystem · number
+Version: RC26-R1-GRP-03-v2         one mechanism per version (v1 servo claw, v2 suction cup …)
+Item:    RC26-R1-GRP-03-v2-ASM     by kind; a second one is …-ASM2
 ```
+
+**Names are generated, never typed.** People write a description ("Grabs the rice sack"), and the database applies the rule. When the mechanism changes, start a new version on the module page. It becomes current, new items are named under it, and older versions keep their items, reasons and outcomes as history.
 
 **Access:** Google sign-in only. New users arrive *pending*; a lead approves them as *member* or *lead*. Members read and add; leads also approve, delete and mark as-built. All of this is enforced in the database (RLS + triggers), not just the UI.
 
@@ -25,7 +29,7 @@ File names: RC26-R1-GRP-CLAW-v2 — season · robot · subsystem · part · revi
 ### 1. Supabase project
 
 1. Create a project at [supabase.com](https://supabase.com) (free tier is fine).
-2. **SQL Editor → New query** → paste all of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**, then do the same with [`0002_multi_robot.sql`](supabase/migrations/0002_multi_robot.sql) and [`0003_proposals.sql`](supabase/migrations/0003_proposals.sql).
+2. **SQL Editor → New query** → paste all of [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → **Run**, then do the same with [`0002_multi_robot.sql`](supabase/migrations/0002_multi_robot.sql) [`0003_proposals.sql`](supabase/migrations/0003_proposals.sql) and [`0004_naming_versions.sql`](supabase/migrations/0004_naming_versions.sql).
    Together they create the tables, RLS, `is_lead()`, the sign-up trigger and the `exports` bucket, seed the eight subsystem codes, and allow several robots per season. Both are safe to re-run, and 0002 keeps existing data (existing robots become R1).
    To wipe and start over, run [`supabase/reset.sql`](supabase/reset.sql) first.
 3. The first lead is bootstrapped from the `bootstrap_leads` table (seeded with `23005199@siswa.um.edu.my`). That account becomes a lead the first time it signs in. Add more emails there only if you need to recover access.
@@ -107,7 +111,7 @@ The site launches empty. Each form depends on the one before it:
 5. **Items** (anyone approved): the Add form on Programming, Electronics or Mechanical.
    - Mechanical works in three steps: register the master → upload the STEP + PDF on the item page → a lead marks it as-built.
 
-Flags appear wherever the data is shown: names that break `RC26-DRV-PART-v1`, drive masters missing their STEP or PDF, empty lanes, modules untouched for 30+ days, and subsystems without a lead.
+Flags appear wherever the data is shown: drive masters missing their STEP or PDF, empty lanes, modules untouched for 30+ days, and subsystems without a lead.
 
 ## Layout
 

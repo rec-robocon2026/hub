@@ -35,7 +35,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
       {!query ? (
         <p className="text-muted">Search names, titles, kinds and notes across every season.</p>
       ) : assets.length + modules.length === 0 ? (
-        <Empty title={`Nothing matches “${query}”`} body="Try part of a name (WHEELMOD), a robot and code (R1-DRV) or a kind (Schematic)." />
+        <Empty title={`Nothing matches “${query}”`} body="Try words from a description (gripper), a code (R1-GRP-03) or a kind (Schematic)." />
       ) : (
         <>
           {modules.length > 0 && (
@@ -44,7 +44,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               <div className="row" style={{ marginBottom: 32 }}>
                 {modules.map((m) => (
                   <Link key={m.id} href={`/modules/${m.id}`} className="btn btn-secondary">
-                    {m.subsystems?.robots?.seasons?.prefix}-{m.subsystems?.robots?.code} · {m.name}
+                    {m.name} · {m.description}
                   </Link>
                 ))}
               </div>

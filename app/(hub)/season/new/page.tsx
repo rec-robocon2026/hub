@@ -35,7 +35,7 @@ export default async function NewSeasonPage() {
         org={githubOrg()}
         githubConnected={isGithubConfigured()}
         codes={codes.map((c) => ({ code: c.code, name: c.name }))}
-        library={library.map((m) => ({ id: m.id, name: m.name, slug: m.slug, code: m.code, origin: m.origin, note: m.proven_note }))}
+        library={library.map((m) => ({ id: m.id, name: m.name, description: m.description, slug: m.slug, code: m.code, origin: m.origin, note: m.proven_note }))}
       />
 
       <Box className="pad-lg section" style={{ maxWidth: 640 }}>
