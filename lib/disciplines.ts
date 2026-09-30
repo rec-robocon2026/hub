@@ -34,8 +34,8 @@ export const DISCIPLINES: Record<Discipline, DisciplineConfig> = {
     locations: ["github", "storage", "link"],
     defaultLocation: "github",
     fileHint: "log · CSV · rosbag summary · screenshot",
-    example: "RC26-DRV-PIDTUNE-v1",
-    rule: "season · subsystem code · part or module · variant (optional) · revision. Uppercase, no spaces, no “final”.",
+    example: "RC26-R1-DRV-PIDTUNE-v1",
+    rule: "season · robot (R1, R2, RD) · subsystem code · part or module · variant (optional) · revision. Uppercase, no spaces, no “final”.",
   },
   elec: {
     discipline: "elec",
@@ -50,8 +50,8 @@ export const DISCIPLINES: Record<Discipline, DisciplineConfig> = {
     locations: ["github", "storage", "link"],
     defaultLocation: "github",
     fileHint: "Gerber zip · schematic PDF · BOM · datasheet",
-    example: "RC26-CTL-CANHUB-v2",
-    rule: "season · subsystem code · board · revision. Bump the revision on every fab order, never reuse one.",
+    example: "RC26-R1-CTL-CANHUB-v2",
+    rule: "season · robot · subsystem code · board · revision. Bump the revision on every fab order, never reuse one.",
   },
   mech: {
     discipline: "mech",
@@ -66,14 +66,14 @@ export const DISCIPLINES: Record<Discipline, DisciplineConfig> = {
     defaultLocation: "drive",
     fileHint: "STEP · STL · PDF drawing · photo",
     accept: ".step,.stp,.stl,.pdf,.png,.jpg,.jpeg,.dae,.obj",
-    example: "RC26-DRV-WHEELMOD-A-v3",
-    rule: "season · subsystem code · part · variant (optional) · revision. Uppercase, no spaces, no “final”.",
+    example: "RC26-R1-DRV-WHEELMOD-A-v3",
+    rule: "season · robot · subsystem code · part · variant (optional) · revision. Uppercase, no spaces, no “final”.",
   },
 };
 
 export const LOCATION_PLACEHOLDER: Record<Location, string> = {
-  github: "https://github.com/rec-robocon2026/rc26-robot/tree/main/modules/…",
-  drive: "/RC26/DRV/WHEELMOD/",
+  github: "https://github.com/rec-robocon2026/RC26/tree/main/R1/…",
+  drive: "/RC26/R1/DRV/WHEELMOD/",
   storage: "",
   link: "https://… datasheet, supplier page, video",
 };

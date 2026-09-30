@@ -26,7 +26,7 @@ export default async function QuickStartPage() {
     },
     {
       title: "Go to your department page and learn the naming rule",
-      body: `One pattern for every file and folder: ${prefix}-DRV-WHEELMOD-A-v3. The Add form checks what you type, so learn it before you make a single file.`,
+      body: `One pattern for every file and folder: ${prefix}-R1-DRV-WHEELMOD-A-v3 — season, robot (R1, R2, or RD for R&D), subsystem, part, revision. The Add form checks what you type, so learn it before you make a single file.`,
     },
     {
       title: "Know where the three kinds of thing live",

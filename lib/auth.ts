@@ -6,10 +6,11 @@ import type { Member } from "@/lib/types";
 /** The signed-in user and their member row, once per request. */
 export const getViewer = cache(async () => {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
+  // getClaims verifies the session JWT locally (no round trip to Supabase Auth on every page).
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+  const user = { id: claims.sub, email: (claims.email as string | undefined) ?? "" };
 
   const { data: member } = await supabase.from("members").select("*").eq("id", user.id).maybeSingle();
   return { user, member: member as Member | null, supabase };

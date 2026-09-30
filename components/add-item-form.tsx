@@ -14,7 +14,7 @@ import type { ActionResult, Discipline, Location, Status } from "@/lib/types";
 import { STATUSES } from "@/lib/types";
 import { uploadToAsset } from "@/lib/upload";
 
-export type ModuleOption = { id: string; name: string; slug: string; code: string; prefix: string };
+export type ModuleOption = { id: string; name: string; slug: string; code: string; robot: string; prefix: string };
 export type DriveOption = { id: string; label: string };
 
 
@@ -79,7 +79,7 @@ export function AddItemForm({
             <select id="module_id" name="module_id" className="input" value={moduleId} onChange={(e) => setModuleId(e.target.value)}>
               {modules.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.code} — {m.name}
+                  {m.robot} · {m.code} — {m.name}
                 </option>
               ))}
             </select>
@@ -107,7 +107,7 @@ export function AddItemForm({
                       </option>
                     ))}
                   </select>
-                  <input className="input mono" name="path" placeholder={mod ? `/${mod.prefix}/${mod.code}/${mod.slug.toUpperCase().replace(/-/g, "")}/` : LOCATION_PLACEHOLDER.drive} />
+                  <input className="input mono" name="path" placeholder={mod ? `/${mod.prefix.replace("-", "/")}/${mod.code}/${mod.slug.toUpperCase().replace(/-/g, "")}/` : LOCATION_PLACEHOLDER.drive} />
                 </div>
               ) : (
                 <div className="note-err">
@@ -127,7 +127,7 @@ export function AddItemForm({
               id="name"
               name="name"
               className="input mono"
-              placeholder={mod ? cfg.example.replace(/^RC\d{2}-[A-Z]{3}/, `${mod.prefix}-${mod.code}`) : cfg.example}
+              placeholder={mod ? cfg.example.replace(/^RC\d{2}-(R[1-9]|RD)-[A-Z]{3}/, `${mod.prefix}-${mod.code}`) : cfg.example}
               value={name}
               onChange={(e) => setName(e.target.value.toUpperCase().replace(/-V(\d*)$/, "-v$1"))}
               autoComplete="off"
@@ -136,7 +136,7 @@ export function AddItemForm({
             <div style={{ marginTop: 8 }} className="small">
               {!name.trim() ? (
                 <span className="text-muted">
-                  Pattern: {mod ? `${mod.prefix}-${mod.code}-PART-v1` : "RC26-DRV-PART-v1"}
+                  Pattern: {mod ? `${mod.prefix}-${mod.code}-PART-v1` : "RC26-R1-DRV-PART-v1"}
                 </span>
               ) : check.ok ? (
                 <span className="accent-text">✓ matches the convention</span>

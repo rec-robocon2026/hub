@@ -21,7 +21,7 @@ export function seasonGaps(
   if (builtNoExports.length)
     gaps.push({
       text: `${builtNoExports.length} as-built ${plural(builtNoExports.length, "part has", "parts have")} no STEP + PDF`,
-      detail: countBy(builtNoExports, (a) => a.subsystem_code),
+      detail: countBy(builtNoExports, (a) => `${a.robot_code}-${a.subsystem_code}`),
       href: "/mechanical#parts",
     });
 
@@ -29,7 +29,7 @@ export function seasonGaps(
   if (missing.length)
     gaps.push({
       text: `${missing.length} CAD ${plural(missing.length, "master is", "masters are")} missing exports`,
-      detail: countBy(missing, (a) => a.subsystem_code),
+      detail: countBy(missing, (a) => `${a.robot_code}-${a.subsystem_code}`),
       href: "/mechanical#parts",
     });
 
@@ -58,11 +58,11 @@ export function seasonGaps(
       href: `/modules/${stale[0].id}`,
     });
 
-  const noLead = subsystems.filter((s) => !s.lead_id);
+  const noLead = subsystems.filter((s) => !s.lead_id && s.robotCode !== "RD");
   if (noLead.length)
     gaps.push({
       text: `${noLead.length} ${plural(noLead.length, "subsystem has", "subsystems have")} no lead`,
-      detail: noLead.map((s) => s.code).join(" · "),
+      detail: noLead.map((s) => `${s.robotCode}-${s.code}`).join(" · "),
       href: `/season/${bundle.season.year}`,
     });
 

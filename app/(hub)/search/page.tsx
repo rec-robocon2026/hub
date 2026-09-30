@@ -12,13 +12,13 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
   const { supabase } = await requireMember();
 
   let assets: AssetHealth[] = [];
-  let modules: (Module & { subsystems: { code: string; robots: { seasons: { prefix: string } } } })[] = [];
+  let modules: (Module & { subsystems: { code: string; robots: { code: string; seasons: { prefix: string } } } })[] = [];
   if (query) {
     // Strip characters PostgREST's or() filter treats as syntax.
     const term = `%${query.replace(/[%,()*]/g, " ")}%`;
     const [a, m] = await Promise.all([
       supabase.from("asset_health").select("*").or(`name.ilike.${term},title.ilike.${term},kind.ilike.${term},notes.ilike.${term}`).order("season_year", { ascending: false }).limit(60),
-      supabase.from("modules").select("*, subsystems(code, robots(seasons(prefix)))").or(`name.ilike.${term},slug.ilike.${term},description.ilike.${term}`).limit(30),
+      supabase.from("modules").select("*, subsystems(code, robots(code, seasons(prefix)))").or(`name.ilike.${term},slug.ilike.${term},description.ilike.${term}`).limit(30),
     ]);
     assets = (a.data as AssetHealth[] | null) ?? [];
     modules = (m.data as typeof modules | null) ?? [];
@@ -28,14 +28,14 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
     <main className="page">
       <div className="kicker">Search every season</div>
       <form action="/search" className="row" style={{ marginBottom: 28, maxWidth: 560 }}>
-        <input className="input" name="q" defaultValue={query} placeholder="RC26-DRV, encoder, gripper…" autoFocus style={{ flex: 1 }} />
+        <input className="input" name="q" defaultValue={query} placeholder="RC26-R1-DRV, encoder, gripper…" autoFocus style={{ flex: 1 }} />
         <button className="btn btn-secondary" type="submit">Search</button>
       </form>
 
       {!query ? (
         <p className="text-muted">Search names, titles, kinds and notes across every season.</p>
       ) : assets.length + modules.length === 0 ? (
-        <Empty title={`Nothing matches “${query}”`} body="Try part of a name (WHEELMOD), a subsystem code (DRV) or a kind (Schematic)." />
+        <Empty title={`Nothing matches “${query}”`} body="Try part of a name (WHEELMOD), a robot and code (R1-DRV) or a kind (Schematic)." />
       ) : (
         <>
           {modules.length > 0 && (
@@ -44,7 +44,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
               <div className="row" style={{ marginBottom: 32 }}>
                 {modules.map((m) => (
                   <Link key={m.id} href={`/modules/${m.id}`} className="btn btn-secondary">
-                    {m.subsystems?.robots?.seasons?.prefix} · {m.name}
+                    {m.subsystems?.robots?.seasons?.prefix}-{m.subsystems?.robots?.code} · {m.name}
                   </Link>
                 ))}
               </div>
@@ -72,7 +72,7 @@ export default async function SearchPage({ searchParams }: PageProps<"/search">)
                           <div className="text-muted small">{a.title}</div>
                           <div className="flags"><AssetFlags asset={a} /></div>
                         </td>
-                        <td><Tag kind="neutral">{a.season_prefix}</Tag></td>
+                        <td><Tag kind="neutral">{a.season_prefix}-{a.robot_code}</Tag></td>
                         <td className="small"><Link href={`/modules/${a.module_id}`}>{a.module_name}</Link></td>
                         <td className="text-muted small">{a.kind}</td>
                         <td><StatusTag status={a.status} /></td>

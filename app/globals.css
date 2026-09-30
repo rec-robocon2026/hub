@@ -138,3 +138,27 @@ a.gap-item:hover { background: color-mix(in srgb, var(--color-accent) 6%, transp
 .auth-wrap { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
 .auth-card { width: min(440px, 100%); padding: 32px 30px; display: grid; gap: 14px; }
 .google-btn { width: 100%; gap: 10px; font-size: 15px; padding: 10px 14px; }
+
+/* — loading feel — */
+.nav-progress {
+  position: fixed; top: env(safe-area-inset-top, 0px); left: 0; height: 2px; z-index: 100;
+  background: var(--color-accent); box-shadow: 0 0 6px color-mix(in srgb, var(--color-accent) 60%, transparent);
+  transition: width 0.2s ease, opacity 0.3s ease; pointer-events: none;
+}
+.skeleton {
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--color-neutral-200) 25%, var(--color-neutral-100) 50%, var(--color-neutral-200) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+.skeleton-card { padding: 18px 20px; min-height: 110px; }
+@keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+.page { animation: page-in 0.18s ease-out; }
+@keyframes page-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+.btn { transition: background-color 0.12s ease, transform 0.06s ease, opacity 0.12s ease; }
+.btn:active:not(:disabled) { transform: translateY(1px); }
+.link-card { transition: background-color 0.12s ease; }
+@media (prefers-reduced-motion: reduce) {
+  .page, .skeleton { animation: none; }
+  .nav-progress, .btn { transition: none; }
+}

@@ -4,21 +4,24 @@ import { carryModule } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { Box, Empty, LaneGrid, LinkCard, PrimaryLink, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
-import { loadEvents, loadLibrary, loadMembers, loadSeason, memberMap } from "@/lib/data";
+import { loadEvents, loadLibrary, loadMembers, loadSeason, memberMap, moduleFolder } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
 import { isStale, laneStates } from "@/lib/health";
 
 export const metadata: Metadata = { title: "Modules" };
 
 export default async function ModulesPage({ searchParams }: PageProps<"/modules">) {
-  const { season: seasonParam } = await searchParams;
+  const { season: seasonParam, robot: robotParam } = await searchParams;
   const { supabase, isLead } = await requireMember();
   const bundle = await loadSeason(supabase, seasonParam ? Number(seasonParam) : undefined);
   const [library, members] = await Promise.all([loadLibrary(supabase, bundle), loadMembers(supabase)]);
   const people = memberMap(members);
   const events = bundle ? await loadEvents(supabase, { moduleIds: bundle.modules.map((m) => m.id), limit: 500 }) : [];
-  const codeOf = new Map(bundle?.subsystems.map((s) => [s.id, s.code]));
+  const subOf = new Map(bundle?.subsystems.map((s) => [s.id, s]));
   const canAdd = !!bundle?.season.is_active && bundle.subsystems.length > 0;
+  const robotFilter = typeof robotParam === "string" ? robotParam.toUpperCase() : "";
+  const shown = (bundle?.modules ?? []).filter((m) => !robotFilter || subOf.get(m.subsystem_id)?.robotCode === robotFilter);
+  const seasonQuery = seasonParam ? `season=${seasonParam}&` : "";
 
   return (
     <main className="page">
@@ -59,16 +62,26 @@ export default async function ModulesPage({ searchParams }: PageProps<"/modules"
           action={canAdd ? <PrimaryLink href="/modules/new">New module</PrimaryLink> : undefined}
         />
       ) : (
+        <>
+        <div className="row" style={{ gap: 6, marginBottom: 16 }}>
+          <Link href={`/modules?${seasonQuery}`} className={`tag ${!robotFilter ? "tag-accent" : "tag-outline"}`}>ALL {bundle.modules.length}</Link>
+          {bundle.robots.map((r) => (
+            <Link key={r.id} href={`/modules?${seasonQuery}robot=${r.code}`} className={`tag ${robotFilter === r.code ? "tag-accent" : "tag-outline"}`}>
+              {r.code} {r.kind === "rnd" ? "R&D" : r.codename} {bundle.modules.filter((m) => subOf.get(m.subsystem_id)?.robotCode === r.code).length}
+            </Link>
+          ))}
+        </div>
         <div className="grid" style={{ ["--min" as string]: "270px", marginBottom: 48 }}>
-          {bundle.modules.map((m) => {
+          {shown.map((m) => {
+            const sub = subOf.get(m.subsystem_id);
             const last = events.find((e) => e.module_id === m.id);
             const items = bundle.assets.filter((a) => a.module_id === m.id);
             const flagged = items.filter((a) => !a.name_ok || a.missing_exports).length;
             return (
               <LinkCard key={m.id} href={`/modules/${m.id}`}>
                 <div className="row" style={{ justifyContent: "space-between" }}>
-                  <div className="mono accent-text" style={{ fontSize: 12 }}>modules/{m.slug}/</div>
-                  <Tag kind="neutral">{codeOf.get(m.subsystem_id)}</Tag>
+                  <div className="mono accent-text" style={{ fontSize: 12 }}>{moduleFolder(sub?.robotCode ?? "", m.slug)}</div>
+                  <Tag kind={sub?.robotCode === "RD" ? "outline" : "neutral"}>{sub?.robotCode}·{sub?.code}</Tag>
                 </div>
                 <div className="card-title big">{m.name}</div>
                 <LaneGrid lanes={laneStates(m, bundle.assets, events)} />
@@ -89,12 +102,14 @@ export default async function ModulesPage({ searchParams }: PageProps<"/modules"
             );
           })}
         </div>
+        </>
       )}
 
       <h3 className="section" style={{ margin: "0 0 6px" }}>Reuse library</h3>
       <p className="text-muted section-intro">
-        Modules that worked. Socketing one into this season copies its lanes and <span className="mono">parts.yml</span> and
-        keeps its history linked, so you start from a proven board instead of a blank folder.
+        Modules that worked — from past seasons, and proven prototypes from this season&apos;s R&amp;D bench. Socketing one
+        onto a robot copies its lanes and <span className="mono">parts.yml</span> and keeps its history linked, so you start
+        from a proven board instead of a blank folder.
       </p>
       {library.length ? (
         <div className="grid" style={{ ["--min" as string]: "280px" }}>
@@ -113,11 +128,22 @@ export default async function ModulesPage({ searchParams }: PageProps<"/modules"
                   <Tag key={l} kind="neutral">{l}</Tag>
                 ))}
               </div>
-              {canAdd && (
-                <ActionForm action={carryModule}>
+              {canAdd && bundle && (
+                <ActionForm action={carryModule} className="stack" style={{ gap: 6 }}>
                   <input type="hidden" name="module_id" value={m.id} />
-                  <Submit className="btn-block" pendingText="Socketing…">Socket into {bundle?.season.prefix}</Submit>
-                  <div style={{ marginTop: 6 }}><FormNotice /></div>
+                  <div className="row" style={{ flexWrap: "nowrap" }}>
+                    <select name="robot_id" className="input" defaultValue={bundle.robots.find((r) => r.kind === "competition")?.id}>
+                      {bundle.robots
+                        .filter((r) => !m.origin.endsWith(`-${r.code}`) || !m.origin.startsWith(bundle.season.prefix))
+                        .map((r) => (
+                          <option key={r.id} value={r.id}>
+                            onto {bundle.season.prefix}-{r.code} {r.kind === "rnd" ? "R&D" : r.codename}
+                          </option>
+                        ))}
+                    </select>
+                    <Submit pendingText="Socketing…">Socket</Submit>
+                  </div>
+                  <FormNotice />
                 </ActionForm>
               )}
             </Box>

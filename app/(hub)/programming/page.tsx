@@ -117,7 +117,7 @@ export default async function ProgrammingPage({ searchParams }: PageProps<"/prog
           ) : (
             <Empty
               title="No pushes registered yet"
-              body={repo ? "Push to a module folder (modules/<module>/…) in the season repo and it lands here. If nothing arrives, check the webhook on the right." : "Set the season repo first."}
+              body={repo ? "Push to a module folder (R1/<module>/…) in the season repo and it lands here. If nothing arrives, check the webhook on the right." : "Set the season repo first."}
             />
           )}
         </div>
@@ -126,7 +126,7 @@ export default async function ProgrammingPage({ searchParams }: PageProps<"/prog
           <Box tint className="pad">
             <h5 style={{ margin: "0 0 8px" }}>How pushes register</h5>
             <div className="small" style={{ lineHeight: 1.6 }}>
-              GitHub calls the hub on every push. Files under <span className="mono">modules/&lt;module&gt;/</span> are matched to the module and lane:
+              GitHub calls the hub on every push. Files under <span className="mono">R1/&lt;module&gt;/</span> (or R2/, RD/) are matched to the robot, module and lane:
               <span className="mono"> hardware/</span> → SCH/PCB, <span className="mono">firmware/</span> → FW,
               <span className="mono"> mech/</span> → MECH, <span className="mono">sim/</span> → SIM.
             </div>
@@ -150,12 +150,12 @@ export default async function ProgrammingPage({ searchParams }: PageProps<"/prog
       <h3 className="section" style={{ margin: "44px 0 6px" }}>Commands</h3>
       <p className="text-muted section-intro">The everyday ones. Keep the real versions in each README so they can&apos;t drift.</p>
       <div className="grid" style={{ ["--min" as string]: "320px" }}>
-        <Code label="Start a change">{`git switch -c ${bundle?.season.prefix.toLowerCase() ?? "rc26"}-drv-fix-encoder
+        <Code label="Start a change">{`git switch -c ${bundle?.season.prefix.toLowerCase() ?? "rc26"}-r1-drv-fix-encoder
 # …edit…
 git add -A
 git commit -m "fw: fix encoder direction on rear-left"
 git push -u origin HEAD`}</Code>
-        <Code label="Build and flash (PlatformIO)">{`cd modules/<module>/firmware
+        <Code label="Build and flash (PlatformIO)">{`cd R1/<module>/firmware
 pio run                        # build only
 pio run -t upload              # flash the board
 pio device monitor -b 115200   # serial output`}</Code>

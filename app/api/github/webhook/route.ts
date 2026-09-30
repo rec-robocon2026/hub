@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { commitTouches, type PushCommit } from "@/lib/github";
 import { SUPABASE_URL } from "@/lib/supabase/env";
 
-// GitHub → hub. Registers every push to modules/<slug>/… as history on that module.
+// GitHub → hub. Registers every push to <robot>/<module>/… (e.g. R1/claw/) as history on that module.
 // Needs GITHUB_WEBHOOK_SECRET (same value as in the GitHub webhook) and SUPABASE_SECRET_KEY.
 
 type PushPayload = {
@@ -37,18 +37,27 @@ export async function POST(request: NextRequest) {
 
   const supabase = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } });
 
-  const { data: season } = await supabase.from("seasons").select("id, robots(id)").ilike("repo", repo).maybeSingle();
-  const robot = Array.isArray(season?.robots) ? season?.robots[0] : season?.robots;
-  if (!season || !robot) return NextResponse.json({ ok: true, ignored: `no season uses ${repo}` });
+  const { data: season } = await supabase.from("seasons").select("id, robots(id, code)").ilike("repo", repo).maybeSingle();
+  const robots = (season?.robots ?? []) as { id: string; code: string }[];
+  if (!season || !robots.length) return NextResponse.json({ ok: true, ignored: `no season uses ${repo}` });
 
-  const { data: mods } = await supabase.from("modules").select("id, slug, subsystems!inner(robot_id)").eq("subsystems.robot_id", robot.id);
-  const moduleBySlug = new Map((mods ?? []).map((m) => [m.slug, m.id]));
+  const codeOf = new Map(robots.map((r) => [r.id, r.code]));
+  const { data: mods } = await supabase
+    .from("modules")
+    .select("id, slug, subsystems!inner(robot_id)")
+    .in("subsystems.robot_id", robots.map((r) => r.id));
+  const list = (mods ?? []).map((m) => {
+    const sub = (Array.isArray(m.subsystems) ? m.subsystems[0] : m.subsystems) as { robot_id: string };
+    return { id: m.id as string, slug: m.slug as string, robot: codeOf.get(sub.robot_id) ?? "" };
+  });
+  const findModule = (robot: string, slug: string) => list.find((m) => m.slug === slug && m.robot === robot)?.id;
 
   const rows = payload.commits.flatMap((c) =>
     commitTouches(c)
-      .filter((t) => moduleBySlug.has(t.slug))
+      .map((t) => ({ ...t, moduleId: findModule(t.robot, t.slug) }))
+      .filter((t) => t.moduleId)
       .map((t) => ({
-        module_id: moduleBySlug.get(t.slug),
+        module_id: t.moduleId,
         actor_name: c.author?.username ?? c.author?.name ?? payload.pusher?.name ?? "github",
         action: c.message.split("\n")[0].slice(0, 200),
         detail: `${t.files} file${t.files === 1 ? "" : "s"}`,

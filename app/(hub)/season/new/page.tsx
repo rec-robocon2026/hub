@@ -4,6 +4,7 @@ import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { StartSeasonForm } from "@/components/start-season-form";
 import { Box } from "@/components/ui";
 import { requireLead } from "@/lib/auth";
+import { githubOrg, isGithubConfigured } from "@/lib/github-api";
 import { loadCodes, loadLibrary, loadSeason, loadSeasons } from "@/lib/data";
 
 export const metadata: Metadata = { title: "Start a new season" };
@@ -20,22 +21,25 @@ export default async function NewSeasonPage() {
       <h1 style={{ margin: "0 0 8px", fontSize: "clamp(32px, 4vw, 48px)" }}>Start a new season</h1>
       <p className="lede">
         The twenty minutes at the start of the year that decide whether next year&apos;s batch can find anything. Declare
-        the robot and its subsystems here; modules and items are added after, in that order.
+        the robots, the R&amp;D bench and their subsystems here; modules and items are added after, in that order.
       </p>
       {active && (
         <p className="text-muted lede" style={{ marginBottom: 32 }}>
-          Creating a season makes it the active one. {active.season.prefix} ({active.robot?.codename}) moves to past
+          Creating a season makes it the active one. {active.season.prefix} ({active.robots.filter((r) => r.kind === "competition").map((r) => r.codename).join(" · ")}) moves to past
           seasons and stays readable.
         </p>
       )}
 
       <StartSeasonForm
         defaultYear={nextYear}
+        org={githubOrg()}
+        githubConnected={isGithubConfigured()}
         codes={codes.map((c) => ({ code: c.code, name: c.name }))}
         library={library.map((m) => ({ id: m.id, name: m.name, slug: m.slug, code: m.code, origin: m.origin, note: m.proven_note }))}
       />
 
       <Box className="pad-lg section" style={{ maxWidth: 640 }}>
+        <span id="codes" />
         <h4 style={{ margin: "0 0 6px" }}>Add a subsystem code</h4>
         <p className="text-muted small">
           Codes are fixed for the club, not chosen per season — that is what makes a search for a drivetrain part return

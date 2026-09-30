@@ -4,42 +4,44 @@ import { deleteSubsystem, setSubsystemLead } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { AssetFlags, Box, Empty, LaneGrid, LinkCard, PageHead, StatusTag, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
-import { loadEvents, loadMembers, loadSeason, memberMap } from "@/lib/data";
+import { loadEvents, loadMembers, loadSeason, memberMap, moduleFolder, robotPrefix } from "@/lib/data";
 import { DISCIPLINE_LABEL, shortDate } from "@/lib/format";
 import { laneStates } from "@/lib/health";
 import type { Discipline } from "@/lib/types";
 
-export async function generateMetadata({ params }: PageProps<"/season/[year]/[code]">) {
-  const { year, code } = await params;
-  return { title: `${code} · ${year}` };
+export async function generateMetadata({ params }: PageProps<"/season/[year]/[robot]/[code]">) {
+  const { year, robot, code } = await params;
+  return { title: `${robot}-${code} · ${year}` };
 }
 
-export default async function SubsystemPage({ params, searchParams }: PageProps<"/season/[year]/[code]">) {
-  const { year, code } = await params;
+export default async function SubsystemPage({ params, searchParams }: PageProps<"/season/[year]/[robot]/[code]">) {
+  const { year, robot: robotCode, code } = await params;
   const { d } = await searchParams;
   const { supabase, isLead } = await requireMember();
   const bundle = await loadSeason(supabase, Number(year));
-  const sub = bundle?.subsystems.find((s) => s.code === code.toUpperCase());
-  if (!bundle || !sub) notFound();
+  const robot = bundle?.robots.find((r) => r.code === robotCode.toUpperCase());
+  const sub = bundle?.subsystems.find((s) => s.robot_id === robot?.id && s.code === code.toUpperCase());
+  if (!bundle || !robot || !sub) notFound();
 
   const members = await loadMembers(supabase);
   const people = memberMap(members);
   const mods = bundle.modules.filter((m) => m.subsystem_id === sub.id);
   const events = await loadEvents(supabase, { moduleIds: mods.map((m) => m.id), limit: 40 });
-  const all = bundle.assets.filter((a) => a.subsystem_code === sub.code);
+  const all = bundle.assets.filter((a) => a.robot_id === robot.id && a.subsystem_code === sub.code);
   const filter = (typeof d === "string" ? d : "") as Discipline | "";
   const items = filter ? all.filter((a) => a.discipline === filter) : all;
   const carried = mods.filter((m) => m.carried_from);
-  const base = `/season/${year}/${sub.code}`;
+  const base = `/season/${year}/${robot.code}/${sub.code}`;
+  const prefix = robotPrefix(bundle.season, robot);
 
   return (
     <main className="page">
       <div className="text-muted small" style={{ marginBottom: 6 }}>
-        <Link href="/season">Seasons</Link> / <Link href={`/season/${year}`}>{year}</Link> / {bundle.robot?.codename} / {sub.name}
+        <Link href="/season">Seasons</Link> / <Link href={`/season/${year}`}>{year}</Link> / {robot.code} {robot.codename} / {sub.name}
       </div>
       <PageHead
-        kicker={<span className="mono accent-text" style={{ letterSpacing: 0, textTransform: "none", fontSize: 14 }}>{bundle.season.prefix}-{sub.code}</span>}
-        title={sub.name}
+        kicker={<span className="mono accent-text" style={{ letterSpacing: 0, textTransform: "none", fontSize: 14 }}>{prefix}-{sub.code}</span>}
+        title={<>{sub.name} {robot.kind === "rnd" && <Tag>R&amp;D</Tag>}</>}
         sub={`lead: ${sub.lead_id ? displayName(people.get(sub.lead_id)) : "none"} · ${all.length} items · ${all.filter((a) => a.status === "as_built").length} as-built`}
         actions={
           <>
@@ -57,7 +59,7 @@ export default async function SubsystemPage({ params, searchParams }: PageProps<
             <div className="grid" style={{ ["--min" as string]: "240px", marginBottom: 32 }}>
               {mods.map((m) => (
                 <LinkCard key={m.id} href={`/modules/${m.id}`}>
-                  <div className="mono accent-text" style={{ fontSize: 12 }}>modules/{m.slug}/</div>
+                  <div className="mono accent-text" style={{ fontSize: 12 }}>{moduleFolder(robot.code, m.slug)}</div>
                   <div className="card-title">{m.name}</div>
                   <LaneGrid lanes={laneStates(m, bundle.assets, events)} />
                 </LinkCard>
@@ -137,18 +139,18 @@ export default async function SubsystemPage({ params, searchParams }: PageProps<
           </div>
 
           <div>
-            <h4 style={{ margin: "0 0 12px" }}>Reused from past seasons</h4>
+            <h4 style={{ margin: "0 0 12px" }}>Carried in</h4>
             {carried.length ? (
               <div className="stack">
                 {carried.map((m) => (
                   <Box key={m.id} className="gap-item">
                     <Link href={`/modules/${m.id}`} className="mono">{m.name}</Link>
-                    <div className="text-muted small">carried forward — history kept</div>
+                    <div className="text-muted small">from a past season or the R&amp;D bench — history kept</div>
                   </Box>
                 ))}
               </div>
             ) : (
-              <p className="text-muted small">Nothing carried into this subsystem.</p>
+              <p className="text-muted small">Nothing socketed in from past seasons or R&amp;D.</p>
             )}
           </div>
 

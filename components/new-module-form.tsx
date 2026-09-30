@@ -21,7 +21,7 @@ export function NewModuleForm({
   repo,
   taken,
 }: {
-  subsystems: { id: string; code: string; name: string }[];
+  subsystems: { id: string; code: string; name: string; robot: string; robotName: string }[];
   defaultSubsystem?: string;
   repo: string;
   taken: string[];
@@ -31,10 +31,11 @@ export function NewModuleForm({
   const [lanes, setLanes] = useState<Lane[]>(["SCH", "PCB", "FW", "MECH"]);
   const slug = slugify(name);
   const clash = slug && taken.includes(`${subsystemId}/${slug}`);
+  const robot = subsystems.find((s) => s.id === subsystemId)?.robot ?? "R1";
 
   const folders = [...new Set(LANE_OPTIONS.filter((o) => lanes.includes(o.lane)).map((o) => o.folder))];
   const tree =
-    `modules/${slug || "your-module"}/\n` +
+    `${robot}/${slug || "your-module"}/\n` +
     folders
       .map((f, i) => {
         const last = i === folders.length - 1;
@@ -62,14 +63,22 @@ export function NewModuleForm({
             </div>
           </div>
           <div className="field">
-            <label htmlFor="subsystem_id">Subsystem it belongs to</label>
+            <label htmlFor="subsystem_id">Robot and subsystem</label>
             <select id="subsystem_id" name="subsystem_id" className="input" value={subsystemId} onChange={(e) => setSubsystemId(e.target.value)}>
-              {subsystems.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.code} — {s.name}
-                </option>
-              ))}
+              {[...new Set(subsystems.map((s) => s.robot))].map((r) => {
+                const subs = subsystems.filter((s) => s.robot === r);
+                return (
+                  <optgroup key={r} label={`${r} — ${subs[0].robotName}`}>
+                    {subs.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {r} · {s.code} — {s.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                );
+              })}
             </select>
+            <div className="hint">Prototypes and experiments go on RD, the R&amp;D bench. Once proven, a lead marks it and it can be socketed onto a robot.</div>
           </div>
           <div className="field">
             <label>Which lanes does it need?</label>

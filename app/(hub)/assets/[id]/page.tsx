@@ -29,14 +29,14 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
   const people = memberMap(members);
   const drive = drives.find((d) => d.id === a.drive_id);
   const cfg = DISCIPLINES[a.discipline];
-  const naming = checkName(a.name, a.season_prefix, a.subsystem_code);
+  const naming = checkName(a.name, `${a.season_prefix}-${a.robot_code}`, a.subsystem_code);
   const isMaster = a.location === "drive";
 
   return (
     <main className="page">
       <div className="text-muted small" style={{ marginBottom: 6 }}>
-        <Link href={`/season/${a.season_year}`}>{a.season_prefix}</Link> /{" "}
-        <Link href={`/season/${a.season_year}/${a.subsystem_code}`}>{a.subsystem_code}</Link> /{" "}
+        <Link href={`/season/${a.season_year}`}>{a.season_prefix}</Link> / {a.robot_code} /{" "}
+        <Link href={`/season/${a.season_year}/${a.robot_code}/${a.subsystem_code}`}>{a.subsystem_code}</Link> /{" "}
         <Link href={`/modules/${a.module_id}`}>{a.module_name}</Link>
       </div>
       <PageHead
@@ -59,7 +59,7 @@ export default async function AssetPage({ params }: PageProps<"/assets/[id]">) {
               <h5 style={{ margin: "0 0 6px" }}>This name is flagged</h5>
               <div className="small">
                 {naming.problems.join("; ")}. Expected something like{" "}
-                <span className="mono">{a.season_prefix}-{a.subsystem_code}-PART-v1</span>. Fix it in the form on the right.
+                <span className="mono">{a.season_prefix}-{a.robot_code}-{a.subsystem_code}-PART-v1</span>. Fix it in the form on the right.
               </div>
             </Box>
           )}

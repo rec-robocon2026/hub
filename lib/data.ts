@@ -11,36 +11,58 @@ import type {
   SubsystemCode,
 } from "@/lib/types";
 
-export type SubsystemRow = Subsystem & { name: string };
+export type SubsystemRow = Subsystem & { name: string; robotCode: string };
 
 export type SeasonBundle = {
   season: Season;
-  robot: Robot | null;
+  /** Competition robots first (R1, R2 …), the R&D bench last. */
+  robots: Robot[];
   subsystems: SubsystemRow[];
   modules: Module[];
   assets: AssetHealth[];
 };
 
-/** A whole season: robot, subsystems, modules and every asset with its health flags. */
+export function sortRobots<T extends { code: string }>(robots: T[]) {
+  return [...robots].sort((a, b) => (a.code === "RD" ? 1 : b.code === "RD" ? -1 : a.code.localeCompare(b.code)));
+}
+
+/** "RC26-R1" — the start of every file name on that robot. */
+export function robotPrefix(season: Pick<Season, "prefix">, robot: Pick<Robot, "code">) {
+  return `${season.prefix}-${robot.code}`;
+}
+
+/** Folder of a module in the season repo (rec-robocon2026/RC26): R1/claw/ */
+export function moduleFolder(robotCode: string, slug: string) {
+  return `${robotCode}/${slug}/`;
+}
+
+/** A whole season: robots, subsystems, modules and every asset with its health flags. */
 export async function loadSeason(supabase: SupabaseClient, year?: number): Promise<SeasonBundle | null> {
   const seasonQuery = supabase.from("seasons").select("*");
   const { data: season } = await (year ? seasonQuery.eq("year", year) : seasonQuery.eq("is_active", true)).maybeSingle();
   if (!season) return null;
 
-  const [{ data: robot }, { data: codes }, { data: assets }] = await Promise.all([
-    supabase.from("robots").select("*").eq("season_id", season.id).maybeSingle(),
+  const [{ data: robotRows }, { data: codes }, { data: assets }] = await Promise.all([
+    supabase.from("robots").select("*").eq("season_id", season.id),
     supabase.from("subsystem_codes").select("*"),
     supabase.from("asset_health").select("*").eq("season_year", season.year).order("name"),
   ]);
+  const robots = sortRobots((robotRows as Robot[] | null) ?? []);
 
   let subsystems: SubsystemRow[] = [];
   let modules: Module[] = [];
-  if (robot) {
-    const { data: subs } = await supabase.from("subsystems").select("*").eq("robot_id", robot.id);
-    const codeName = new Map((codes as SubsystemCode[] | null)?.map((c) => [c.code, c]) ?? []);
+  if (robots.length) {
+    const { data: subs } = await supabase.from("subsystems").select("*").in("robot_id", robots.map((r) => r.id));
+    const codeInfo = new Map((codes as SubsystemCode[] | null)?.map((c) => [c.code, c]) ?? []);
+    const robotIndex = new Map(robots.map((r, i) => [r.id, i]));
+    const robotCode = new Map(robots.map((r) => [r.id, r.code]));
     subsystems = ((subs as Subsystem[] | null) ?? [])
-      .map((s) => ({ ...s, name: codeName.get(s.code)?.name ?? s.code }))
-      .sort((a, b) => (codeName.get(a.code)?.sort ?? 99) - (codeName.get(b.code)?.sort ?? 99));
+      .map((s) => ({ ...s, name: codeInfo.get(s.code)?.name ?? s.code, robotCode: robotCode.get(s.robot_id) ?? "" }))
+      .sort(
+        (a, b) =>
+          (robotIndex.get(a.robot_id) ?? 0) - (robotIndex.get(b.robot_id) ?? 0) ||
+          (codeInfo.get(a.code)?.sort ?? 99) - (codeInfo.get(b.code)?.sort ?? 99),
+      );
 
     if (subsystems.length) {
       const { data: mods } = await supabase
@@ -54,18 +76,28 @@ export async function loadSeason(supabase: SupabaseClient, year?: number): Promi
 
   return {
     season: season as Season,
-    robot: robot as Robot | null,
+    robots,
     subsystems,
     modules,
     assets: (assets as AssetHealth[] | null) ?? [],
   };
 }
 
+/** The robot a module sits on. */
+export function robotOfModule(bundle: SeasonBundle, m: Pick<Module, "subsystem_id">) {
+  const sub = bundle.subsystems.find((s) => s.id === m.subsystem_id);
+  return bundle.robots.find((r) => r.id === sub?.robot_id);
+}
+
 export async function loadSeasons(supabase: SupabaseClient) {
-  const { data } = await supabase.from("seasons").select("*, robots(codename)").order("year", { ascending: false });
-  return ((data ?? []) as (Season & { robots: { codename: string } | { codename: string }[] | null })[]).map((s) => ({
+  const { data } = await supabase.from("seasons").select("*, robots(code, codename)").order("year", { ascending: false });
+  return ((data ?? []) as (Season & { robots: { code: string; codename: string }[] | null })[]).map((s) => ({
     ...s,
-    codename: (Array.isArray(s.robots) ? s.robots[0]?.codename : s.robots?.codename) ?? null,
+    codename:
+      sortRobots(s.robots ?? [])
+        .filter((r) => r.code !== "RD")
+        .map((r) => r.codename)
+        .join(" · ") || null,
   }));
 }
 
@@ -101,52 +133,67 @@ export async function loadEvents(
   return (data as HubEvent[] | null) ?? [];
 }
 
-/** Proven modules available to socket into a season, excluding ones already carried into it. */
+type ModuleWithPlace = Module & {
+  subsystems: { code: string; robots: { code: string; seasons: { year: number; prefix: string } } } | null;
+};
+
+/**
+ * Proven modules that can be socketed into a season: past-season modules, plus this season's
+ * R&D bench (so a proven prototype can be promoted onto a competition robot).
+ */
 export async function loadLibrary(supabase: SupabaseClient, bundle: SeasonBundle | null) {
   const { data } = await supabase
     .from("modules")
-    .select("*, subsystems(code, robots(seasons(year, prefix)))")
+    .select("*, subsystems(code, robots(code, seasons(year, prefix)))")
     .eq("is_proven", true)
     .order("name");
-  type Row = Module & {
-    subsystems: { code: string; robots: { seasons: { year: number; prefix: string } } } | null;
-  };
   const carried = new Set(bundle?.modules.map((m) => m.carried_from).filter(Boolean));
   const inSeason = new Set(bundle?.modules.map((m) => m.id));
-  return ((data as Row[] | null) ?? [])
-    .filter((m) => !carried.has(m.id) && !inSeason.has(m.id))
+  return ((data as ModuleWithPlace[] | null) ?? [])
+    .filter((m) => !carried.has(m.id) && (!inSeason.has(m.id) || m.subsystems?.robots?.code === "RD"))
     .map((m) => ({
       ...m,
       code: m.subsystems?.code ?? "",
-      origin: m.subsystems?.robots?.seasons?.prefix ?? "",
+      origin: `${m.subsystems?.robots?.seasons?.prefix ?? ""}-${m.subsystems?.robots?.code ?? ""}`,
     }));
 }
 
-/** Follow carried_from back through past seasons: [this, parent, grandparent, …]. */
+/** Follow carried_from back through past seasons: [parent, grandparent, …]. */
 export async function loadLineage(supabase: SupabaseClient, module: Module) {
   const chain: (Module & { prefix: string })[] = [];
   let next: string | null = module.carried_from;
   while (next && chain.length < 10) {
     const { data } = await supabase
       .from("modules")
-      .select("*, subsystems(robots(seasons(prefix)))")
+      .select("*, subsystems(robots(code, seasons(prefix)))")
       .eq("id", next)
       .maybeSingle();
     if (!data) break;
-    chain.push({ ...(data as Module), prefix: data.subsystems?.robots?.seasons?.prefix ?? "" });
+    const robot = data.subsystems?.robots;
+    chain.push({ ...(data as Module), prefix: `${robot?.seasons?.prefix ?? ""}-${robot?.code ?? ""}` });
     next = data.carried_from;
   }
   return chain;
 }
 
-/** Modules of a season as options for the Add forms, grouped by subsystem order. */
+/** Modules of a season as options for the Add forms, in robot → subsystem order. */
 export function moduleOptions(bundle: SeasonBundle | null) {
   if (!bundle) return [];
   const order = new Map(bundle.subsystems.map((s, i) => [s.id, i]));
-  const code = new Map(bundle.subsystems.map((s) => [s.id, s.code]));
+  const sub = new Map(bundle.subsystems.map((s) => [s.id, s]));
   return [...bundle.modules]
     .sort((a, b) => (order.get(a.subsystem_id) ?? 0) - (order.get(b.subsystem_id) ?? 0) || a.name.localeCompare(b.name))
-    .map((m) => ({ id: m.id, name: m.name, slug: m.slug, code: code.get(m.subsystem_id) ?? "", prefix: bundle.season.prefix }));
+    .map((m) => {
+      const s = sub.get(m.subsystem_id);
+      return {
+        id: m.id,
+        name: m.name,
+        slug: m.slug,
+        code: s?.code ?? "",
+        robot: s?.robotCode ?? "",
+        prefix: `${bundle.season.prefix}-${s?.robotCode ?? ""}`,
+      };
+    });
 }
 
 export function memberMap(members: Member[]) {

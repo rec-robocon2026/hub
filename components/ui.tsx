@@ -73,7 +73,7 @@ export function AssetFlags({ asset }: { asset: AssetHealth }) {
   return (
     <>
       {!asset.name_ok && (
-        <Tag kind="warn" title="Doesn't follow RC26-DRV-PART-v1">
+        <Tag kind="warn" title="Doesn't follow RC26-R1-DRV-PART-v1">
           MESSY NAME
         </Tag>
       )}

@@ -21,7 +21,7 @@ export default async function MechanicalPage({ searchParams }: PageProps<"/mecha
   const parts = bundle?.assets.filter((a) => a.discipline === "mech") ?? [];
   const builtNoExports = parts.filter((a) => a.status === "as_built" && a.missing_exports);
   const driveLabel = new Map(drives.map((d) => [d.id, d.label]));
-  const sample = parts.find((a) => a.has_step)?.name ?? `${bundle?.season.prefix ?? "RC26"}-DRV-MOTORMNT-v2`;
+  const sample = parts.find((a) => a.has_step)?.name ?? `${bundle?.season.prefix ?? "RC26"}-R1-DRV-MOTORMNT-v2`;
 
   return (
     <main className="page">
@@ -138,7 +138,7 @@ export default async function MechanicalPage({ searchParams }: PageProps<"/mecha
           )}
           <Box className="pad">
             <h5 style={{ margin: "0 0 8px" }}>Folder rule</h5>
-            <div className="mono">/{bundle?.season.prefix ?? "RC26"}/DRV/WHEELMOD/</div>
+            <div className="mono">/{bundle?.season.prefix ?? "RC26"}/R1/DRV/WHEELMOD/</div>
             <div className="text-muted small" style={{ marginTop: 8, lineHeight: 1.6 }}>
               Folders mirror the naming convention, so a record&apos;s path is enough to find the file without asking anyone.
             </div>

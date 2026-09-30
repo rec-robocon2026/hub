@@ -2,8 +2,10 @@
 
 import type { PostgrestError } from "@supabase/supabase-js";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireLead, requireMember } from "@/lib/auth";
+import { syncModule, syncRobot, syncSeason } from "@/lib/github-sync";
 import { checkName, revisionOf, slugify } from "@/lib/naming";
 import type { ActionResult, Discipline, Lane, Location, Role, Status } from "@/lib/types";
 import { LANES, STATUSES } from "@/lib/types";
@@ -22,6 +24,17 @@ function fail(error: PostgrestError | { message: string }): ActionResult {
   return { ok: false, message: msg };
 }
 
+async function requestOrigin() {
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  return h.get("origin") ?? (host ? `${h.get("x-forwarded-proto") ?? "https"}://${host}` : null);
+}
+
+/** ?gh=… on a redirect so the next page can show what happened on GitHub. */
+function ghParam(r: { ok: boolean; note: string }) {
+  return `gh=${encodeURIComponent(r.note)}&ghok=${r.ok ? 1 : 0}`;
+}
+
 function done(message: string, id?: string): ActionResult {
   revalidatePath("/", "layout");
   return { ok: true, message, id };
@@ -32,35 +45,96 @@ function done(message: string, id?: string): ActionResult {
 export async function startSeason(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireLead();
   const year = Number(str(fd, "year"));
-  const codename = str(fd, "codename");
   if (!year || year < 2000 || year > 2099) return { ok: false, message: "Enter the season year, e.g. 2027." };
-  if (!codename) return { ok: false, message: "Give the robot a codename first." };
 
-  const { error } = await supabase.rpc("start_season", {
+  // Robots come in as robot_code[] / robot_codename[] / robot_description[] rows; blank codenames are skipped.
+  const codes = fd.getAll("robot_code").map(String);
+  const names = fd.getAll("robot_codename").map((v) => String(v).trim());
+  const descs = fd.getAll("robot_description").map((v) => String(v).trim());
+  const robots = codes
+    .map((code, i) => ({ code, codename: names[i], description: descs[i] || null }))
+    .filter((r) => r.codename);
+  if (!robots.some((r) => r.code !== "RD")) return { ok: false, message: "Give at least one competition robot a codename." };
+
+  const { data: seasonId, error } = await supabase.rpc("start_season", {
     p_year: year,
-    p_codename: codename,
-    p_description: opt(fd, "description"),
+    p_robots: robots,
     p_codes: fd.getAll("codes").map(String),
     p_carry: fd.getAll("carry").map(String),
-    p_repo: opt(fd, "repo"),
+    p_repo: cleanRepo(opt(fd, "repo")),
   });
   if (error) return fail(error);
+  // Creates rec-robocon2026/RC26 (unless a repo was given) with R1/ R2/ RD/ and any carried modules.
+  const gh = await syncSeason(supabase, seasonId as string, await requestOrigin());
   revalidatePath("/", "layout");
-  redirect(`/season/${year}`);
+  redirect(`/season/${year}?${ghParam(gh)}`);
+}
+
+export async function syncSeasonToGithub(_: State, fd: FormData): Promise<ActionResult> {
+  const { supabase } = await requireLead();
+  const gh = await syncSeason(supabase, str(fd, "season_id"), await requestOrigin());
+  revalidatePath("/", "layout");
+  return { ok: gh.ok, message: gh.note };
+}
+
+function cleanRepo(repo: string | null) {
+  return repo?.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$|\/$/g, "") || null;
 }
 
 export async function updateSeason(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireLead();
-  const id = str(fd, "season_id");
-  const repo = opt(fd, "repo")?.replace(/^https?:\/\/github\.com\//, "").replace(/\.git$|\/$/g, "") ?? null;
-  const { error } = await supabase.from("seasons").update({ repo, result: opt(fd, "result") }).eq("id", id);
+  const { error } = await supabase
+    .from("seasons")
+    .update({ repo: cleanRepo(opt(fd, "repo")), result: opt(fd, "result") })
+    .eq("id", str(fd, "season_id"));
   if (error) return fail(error);
-  const { error: e2 } = await supabase
+  return done("Saved");
+}
+
+// ─── Robots ─────────────────────────────────────────────────────────────────
+
+export async function addRobot(_: State, fd: FormData): Promise<ActionResult> {
+  const { supabase } = await requireLead();
+  const code = str(fd, "code").toUpperCase();
+  const codename = str(fd, "codename").toUpperCase();
+  if (!/^(R[1-9]|RD)$/.test(code)) return { ok: false, message: "Robot code is R1–R9, or RD for the R&D bench." };
+  if (!codename) return { ok: false, message: "Give it a codename." };
+  const { data, error } = await supabase
+    .from("robots")
+    .insert({ season_id: str(fd, "season_id"), code, codename, description: opt(fd, "description") })
+    .select("id")
+    .single();
+  if (error) return fail(error);
+  const subsystemCodes = fd.getAll("codes").map(String);
+  if (subsystemCodes.length) {
+    const { error: e2 } = await supabase.from("subsystems").insert(subsystemCodes.map((c) => ({ robot_id: data.id, code: c })));
+    if (e2) return fail(e2);
+  }
+  const gh = await syncRobot(supabase, data.id);
+  return done(`${code} ${codename} added · ${gh.note}`);
+}
+
+export async function updateRobot(_: State, fd: FormData): Promise<ActionResult> {
+  const { supabase } = await requireLead();
+  const { error } = await supabase
     .from("robots")
     .update({ codename: str(fd, "codename").toUpperCase(), description: opt(fd, "description") })
-    .eq("season_id", id);
-  if (e2) return fail(e2);
+    .eq("id", str(fd, "robot_id"));
+  if (error) return fail(error);
   return done("Saved");
+}
+
+export async function deleteRobot(fd: FormData) {
+  const { supabase } = await requireLead();
+  const robotId = str(fd, "robot_id");
+  const { data: subs } = await supabase.from("subsystems").select("id").eq("robot_id", robotId);
+  const { count } = await supabase
+    .from("modules")
+    .select("id", { count: "exact", head: true })
+    .in("subsystem_id", (subs ?? []).map((s) => s.id));
+  if (count) return; // only robots with no modules can be removed; the button is hidden otherwise
+  await supabase.from("robots").delete().eq("id", robotId);
+  revalidatePath("/", "layout");
 }
 
 export async function setActiveSeason(fd: FormData) {
@@ -134,16 +208,17 @@ export async function createModule(_: State, fd: FormData): Promise<ActionResult
       slug,
       lanes,
       description: opt(fd, "description"),
-      parts_yml: `# modules/${slug}/parts.yml — one entry per part: name, drive path, revision\nparts: []\n`,
+      parts_yml: "# one entry per part: name, drive path, revision\nparts: []\n",
     })
     .select("id")
     .single();
   if (error) return fail(error);
+  const gh = await syncModule(supabase, data.id);
   revalidatePath("/", "layout");
-  redirect(`/modules/${data.id}`);
+  redirect(`/modules/${data.id}?${ghParam(gh)}`);
 }
 
-/** Socket a proven module into the active season, keeping its lineage and parts.yml. */
+/** Socket a proven module onto a robot of the active season, keeping its lineage and parts.yml. */
 export async function carryModule(_: State, fd: FormData): Promise<ActionResult> {
   const { supabase } = await requireMember();
   const { data: src } = await supabase
@@ -153,25 +228,34 @@ export async function carryModule(_: State, fd: FormData): Promise<ActionResult>
     .single();
   if (!src) return { ok: false, message: "That module no longer exists." };
 
-  const { data: season } = await supabase.from("seasons").select("id, prefix, robots(id)").eq("is_active", true).maybeSingle();
-  const robot = Array.isArray(season?.robots) ? season?.robots[0] : season?.robots;
-  if (!season || !robot) return { ok: false, message: "There's no active season to carry it into." };
+  const { data: robot } = await supabase
+    .from("robots")
+    .select("id, code, codename, seasons!inner(prefix, is_active)")
+    .eq("id", str(fd, "robot_id"))
+    .maybeSingle();
+  const season = (Array.isArray(robot?.seasons) ? robot?.seasons[0] : robot?.seasons) as { prefix: string; is_active: boolean } | undefined;
+  if (!robot || !season?.is_active) return { ok: false, message: "Pick a robot in the active season." };
 
   const code = src.subsystems?.code;
   const { data: sub } = await supabase.from("subsystems").select("id").eq("robot_id", robot.id).eq("code", code).maybeSingle();
-  if (!sub) return { ok: false, message: `This season has no ${code} subsystem yet — ask a lead to add it first.` };
+  if (!sub) return { ok: false, message: `${robot.code} has no ${code} subsystem yet — ask a lead to add it first.` };
 
-  const { error } = await supabase.from("modules").insert({
-    subsystem_id: sub.id,
-    name: src.name,
-    slug: src.slug,
-    description: src.description,
-    lanes: src.lanes,
-    parts_yml: src.parts_yml,
-    carried_from: src.id,
-  });
+  const { data: created, error } = await supabase
+    .from("modules")
+    .insert({
+      subsystem_id: sub.id,
+      name: src.name,
+      slug: src.slug,
+      description: src.description,
+      lanes: src.lanes,
+      parts_yml: src.parts_yml,
+      carried_from: src.id,
+    })
+    .select("id")
+    .single();
   if (error) return fail(error);
-  return done(`${src.name} socketed into ${season.prefix}`);
+  const gh = await syncModule(supabase, created.id);
+  return done(`${src.name} socketed onto ${season.prefix}-${robot.code} · ${gh.note}`);
 }
 
 export async function updateModule(_: State, fd: FormData): Promise<ActionResult> {

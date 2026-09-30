@@ -23,28 +23,35 @@ export default async function HomePage() {
   const pastSeasons = seasons.filter((s) => !s.is_active);
 
   const moduleName = new Map(bundle?.modules.map((m) => [m.id, m.name]));
+  const competition = bundle?.robots.filter((r) => r.kind === "competition") ?? [];
+  const rnd = bundle?.robots.find((r) => r.kind === "rnd");
 
   return (
     <main className="page">
       {bundle ? (
         <div className="split even" style={{ gridTemplateColumns: "minmax(0, 1.15fr) minmax(0, 1fr)", alignItems: "stretch" }}>
           <Box className="hero-figure duotone">
-            <div className="caption">{bundle.robot?.codename ?? "robot"} · {bundle.season.prefix}</div>
+            <div className="caption">{competition.map((r) => r.codename).join(" · ") || "robots"} · {bundle.season.prefix}</div>
           </Box>
           <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
             <div className="kicker">Season {bundle.season.year} · active</div>
-            <h1 style={{ fontSize: "clamp(40px, 5vw, 60px)", margin: "0 0 4px" }}>{bundle.robot?.codename ?? "Unnamed"}</h1>
-            <p style={{ fontSize: 17, maxWidth: "46ch", margin: "0 0 20px" }}>
-              {bundle.robot?.description ?? <span className="text-muted">No description yet.</span>}
-            </p>
+            <h1 style={{ fontSize: "clamp(40px, 5vw, 60px)", margin: "0 0 4px" }}>{competition.map((r) => r.codename).join(" · ") || "No robots yet"}</h1>
+            <div className="stack" style={{ gap: 4, margin: "4px 0 20px", maxWidth: "52ch" }}>
+              {[...competition, ...(rnd ? [rnd] : [])].map((r) => (
+                <div key={r.id} style={{ fontSize: 15 }}>
+                  <span className="mono accent-text">{r.code}</span> {r.kind === "rnd" ? "R&D bench" : r.codename}
+                  {r.description && <span className="text-muted"> — {r.description}</span>}
+                </div>
+              ))}
+            </div>
             <div className="row" style={{ marginBottom: 22 }}>
-              <PrimaryLink href={`/season/${bundle.season.year}`}>Open robot</PrimaryLink>
+              <PrimaryLink href={`/season/${bundle.season.year}`}>Open the season</PrimaryLink>
               <Link className="btn btn-secondary" href="/modules">
                 Browse modules
               </Link>
             </div>
             <div className="stats">
-              <Stat value={bundle.subsystems.length} label="subsystems" />
+              <Stat value={competition.length} label={competition.length === 1 ? "robot" : "robots"} />
               <Stat value={bundle.assets.length} label="items indexed" />
               <Stat value={bundle.assets.filter((a) => a.status === "as_built").length} label="as-built" />
               <Stat value={approved.length} label="members" />

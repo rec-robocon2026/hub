@@ -39,7 +39,14 @@ export type Season = {
   created_at: string;
 };
 
-export type Robot = { id: string; season_id: string; codename: string; description: string | null };
+export type Robot = {
+  id: string;
+  season_id: string;
+  code: string; // R1, R2 … or RD for the R&D bench
+  kind: "competition" | "rnd";
+  codename: string;
+  description: string | null;
+};
 
 export type Subsystem = {
   id: string;
@@ -91,6 +98,9 @@ export type Asset = {
 export type AssetHealth = Asset & {
   season_prefix: string;
   season_year: number;
+  robot_id: string;
+  robot_code: string;
+  robot_codename: string;
   subsystem_code: string;
   module_name: string;
   module_slug: string;

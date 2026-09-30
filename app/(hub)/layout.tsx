@@ -31,7 +31,7 @@ export default async function HubLayout({ children }: LayoutProps<"/">) {
         <NavLinks links={links} />
         <div className="spacer" />
         <form className="search" action="/search">
-          <input className="input" name="q" placeholder="Search — RC26-DRV, encoder, gripper…" aria-label="Search" style={{ fontSize: 13 }} />
+          <input className="input" name="q" placeholder="Search — RC26-R1-DRV, encoder, gripper…" aria-label="Search" style={{ fontSize: 13 }} />
         </form>
         <div className="me">
           <Tag kind={isLead ? "accent" : "neutral"}>{member.role.toUpperCase()}</Tag>

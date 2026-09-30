@@ -3,7 +3,7 @@ import Link from "next/link";
 import { AddSection } from "@/components/add-section";
 import { AssetFlags, Box, Code, Empty, PageHead, StatusTag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
-import { loadDrives, loadMembers, loadSeason } from "@/lib/data";
+import { loadDrives, loadMembers, loadSeason, moduleFolder, robotOfModule } from "@/lib/data";
 import { timeAgo } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Electronics" };
@@ -27,7 +27,9 @@ export default async function ElectronicsPage({ searchParams }: PageProps<"/elec
       return { m, sch: rev("SCH"), pcb: rev("PCB"), release };
     });
 
+  const robotCode = (m: (typeof boards)[number]["m"]) => (bundle ? robotOfModule(bundle, m)?.code : undefined) ?? "R1";
   const kicadExample = boards[0]?.m.slug ?? "can-hub";
+  const kicadFolder = boards[0] ? moduleFolder(robotCode(boards[0].m), kicadExample) : "R1/can-hub/";
 
   return (
     <main className="page">
@@ -61,7 +63,7 @@ export default async function ElectronicsPage({ searchParams }: PageProps<"/elec
                 <tr key={m.id}>
                   <td>
                     <Link href={`/modules/${m.id}`}>{m.name}</Link>
-                    <div className="text-muted mono" style={{ fontSize: 11.5 }}>modules/{m.slug}/hardware/</div>
+                    <div className="text-muted mono" style={{ fontSize: 11.5 }}>{moduleFolder(robotCode(m), m.slug)}hardware/</div>
                   </td>
                   <td className="text-muted small">{sch}</td>
                   <td className="text-muted small">{pcb}</td>
@@ -71,7 +73,7 @@ export default async function ElectronicsPage({ searchParams }: PageProps<"/elec
                   <td><StatusTag status={m.status} /></td>
                   <td>
                     {bundle?.season.repo && (
-                      <a className="small" style={{ whiteSpace: "nowrap" }} href={`https://github.com/${bundle.season.repo}/tree/main/modules/${m.slug}/hardware`} target="_blank" rel="noreferrer">
+                      <a className="small" style={{ whiteSpace: "nowrap" }} href={`https://github.com/${bundle.season.repo}/tree/main/${moduleFolder(robotCode(m), m.slug)}hardware`} target="_blank" rel="noreferrer">
                         Open on GitHub
                       </a>
                     )}
@@ -98,7 +100,7 @@ export default async function ElectronicsPage({ searchParams }: PageProps<"/elec
             Export the release files and commit them. The PDF and the Gerbers are what the next batch reads — the KiCad
             source is for you, the release is for everyone else.
           </p>
-          <Code label="modules/*/hardware/README.md">{`cd modules/${kicadExample}/hardware
+          <Code label="modules/*/hardware/README.md">{`cd ${kicadFolder}hardware
 kicad-cli sch export pdf ${kicadExample}.kicad_sch -o release/
 kicad-cli pcb export gerbers ${kicadExample}.kicad_pcb -o release/gerbers/
 zip -r release/gerbers-v2.zip release/gerbers/`}</Code>

@@ -4,7 +4,8 @@ import { deleteModule, setModuleStatus, setProven, updateModule } from "@/app/(h
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { AssetFlags, Box, Empty, LaneGrid, PageHead, StatusTag, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
-import { loadEvents, loadLineage, loadMembers, memberMap } from "@/lib/data";
+import { GithubNotice } from "@/components/github-notice";
+import { loadEvents, loadLineage, loadMembers, memberMap, moduleFolder } from "@/lib/data";
 import { DISCIPLINE_PATH, shortDate, STATUS_LABEL, timeAgo, vscodeClone } from "@/lib/format";
 import { laneStates } from "@/lib/health";
 import type { AssetHealth, Module, Robot, Season, Subsystem } from "@/lib/types";
@@ -12,8 +13,9 @@ import { LANES, STATUSES } from "@/lib/types";
 
 type ModuleRow = Module & { subsystems: Subsystem & { robots: Robot & { seasons: Season } } };
 
-export default async function ModulePage({ params }: PageProps<"/modules/[id]">) {
+export default async function ModulePage({ params, searchParams }: PageProps<"/modules/[id]">) {
   const { id } = await params;
+  const { gh, ghok } = await searchParams;
   const { supabase, isLead } = await requireMember();
   const { data } = await supabase.from("modules").select("*, subsystems(*, robots(*, seasons(*)))").eq("id", id).maybeSingle();
   if (!data) notFound();
@@ -29,13 +31,14 @@ export default async function ModulePage({ params }: PageProps<"/modules/[id]">)
   const events = await loadEvents(supabase, { moduleIds: [m.id, ...lineage.map((l) => l.id)], limit: 100 });
   const people = memberMap(members);
   const prefixOf = new Map([[m.id, season.prefix], ...lineage.map((l) => [l.id, l.prefix] as const)]);
-  const folder = `modules/${m.slug}/`;
+  const robot = m.subsystems.robots;
+  const folder = moduleFolder(robot.code, m.slug);
 
   return (
     <main className="page">
       <div className="text-muted small" style={{ marginBottom: 6 }}>
-        <Link href={`/season/${season.year}`}>{season.prefix} · {m.subsystems.robots.codename}</Link> /{" "}
-        <Link href={`/season/${season.year}/${m.subsystems.code}`}>{m.subsystems.code}</Link> / <Link href="/modules">Modules</Link>
+        <Link href={`/season/${season.year}`}>{season.prefix}</Link> / {robot.code} {robot.kind === "rnd" ? "R&D" : robot.codename} /{" "}
+        <Link href={`/season/${season.year}/${robot.code}/${m.subsystems.code}`}>{m.subsystems.code}</Link> / <Link href="/modules">Modules</Link>
       </div>
       <PageHead
         kicker={<span className="mono accent-text" style={{ letterSpacing: 0, textTransform: "none", fontSize: 13 }}>{folder}</span>}
@@ -56,6 +59,7 @@ export default async function ModulePage({ params }: PageProps<"/modules/[id]">)
         }
       />
 
+      <GithubNotice gh={gh} ghok={ghok} />
       <div style={{ maxWidth: 520, marginBottom: 32 }}>
         <LaneGrid lanes={laneStates(m, assets, events.filter((e) => e.module_id === m.id))} />
       </div>
