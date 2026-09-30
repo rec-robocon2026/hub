@@ -142,7 +142,24 @@ export async function protectMain(repo: string) {
       restrictions: null,
     }),
   });
+  if (res.status === 403 && /upgrade|make this repository public/i.test((res.data as { message?: string } | null)?.message ?? ""))
+    throw new GithubError("the free GitHub plan can't enforce this on a private repo — make it public or upgrade the org to GitHub Team");
   if (res.status !== 200) throw explain("Protecting main", res.status, res.data);
+}
+
+/** Replace README.md only if it is still GitHub's auto-generated two-line stub. */
+export async function replaceStubReadme(repo: string, content: string) {
+  const cur = await gh<{ sha: string; content: string }>(`/repos/${repo}/contents/README.md`);
+  if (cur.status !== 200) return false;
+  const text = Buffer.from(cur.data.content, "base64").toString("utf8").trim();
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  if (lines.length > 2 || !lines[0]?.startsWith("# ")) return false; // someone wrote a real README
+  const res = await gh(`/repos/${repo}/contents/README.md`, {
+    method: "PUT",
+    body: JSON.stringify({ message: "hub: season README", content: Buffer.from(content).toString("base64"), sha: cur.data.sha }),
+  });
+  if (res.status !== 200 && res.status !== 201) throw explain("Writing README.md", res.status, res.data);
+  return true;
 }
 
 export function githubErrorMessage(e: unknown) {

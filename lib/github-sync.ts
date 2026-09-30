@@ -1,7 +1,7 @@
 // Server-only. Keeps the season repo's folders in step with the hub. Never throws: GitHub trouble
 // comes back as a note so the hub record is still saved.
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { commitFiles, ensureRepo, ensureWebhook, githubErrorMessage, githubOrg, isGithubConfigured, protectMain } from "@/lib/github-api";
+import { commitFiles, ensureRepo, ensureWebhook, githubErrorMessage, githubOrg, isGithubConfigured, protectMain, replaceStubReadme } from "@/lib/github-api";
 import { moduleFiles, robotReadme, seasonFiles, seasonRepoName, type RepoFile } from "@/lib/scaffold";
 import type { Lane, Module, Robot, Season, Subsystem } from "@/lib/types";
 
@@ -47,8 +47,12 @@ export async function syncSeason(supabase: SupabaseClient, seasonId: string, ori
       }).flat(),
     ];
     const { committed } = await commitFiles(repo, files, `hub: scaffold ${season.prefix}`);
+    const readme = await replaceStubReadme(repo, files[0].content);
 
-    const notes = [created ? `Created ${repo}` : `Using ${repo}`, `${committed} file${committed === 1 ? "" : "s"} committed`];
+    const notes = [
+      created ? `Created ${repo}` : `Using ${repo}`,
+      `${committed + (readme ? 1 : 0)} file${committed + (readme ? 1 : 0) === 1 ? "" : "s"} committed`,
+    ];
     const hook = webhookUrl(origin);
     const secret = process.env.GITHUB_WEBHOOK_SECRET;
     if (hook && secret) {
@@ -63,7 +67,7 @@ export async function syncSeason(supabase: SupabaseClient, seasonId: string, ori
       await protectMain(repo);
       notes.push("main protected (1 approval)");
     } catch (e) {
-      notes.push(`main not protected — ${githubErrorMessage(e)}. Private repos need a paid GitHub plan for this; public repos don't.`);
+      notes.push(`main not protected — ${githubErrorMessage(e)}`);
     }
     return { ok: true, note: notes.join(" · ") };
   } catch (e) {
