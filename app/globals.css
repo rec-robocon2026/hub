@@ -165,3 +165,14 @@ a.gap-item:hover { background: color-mix(in srgb, var(--color-accent) 6%, transp
 .remove-member > summary { list-style: none; cursor: pointer; }
 .remove-member > summary::-webkit-details-marker { display: none; }
 .remove-member[open] { max-width: 260px; }
+
+/* — code review — */
+.diff-file { padding: 0; }
+.diff-head { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; border-bottom: 1px solid var(--color-divider); }
+.diff { margin: 0; padding: 8px 0; font-family: var(--font-mono); font-size: 12px; line-height: 1.6; overflow-x: auto; }
+.diff > span { display: block; padding: 0 14px; white-space: pre; }
+.diff .add { background: color-mix(in srgb, #2f9e44 14%, transparent); }
+.diff .del { background: color-mix(in srgb, #d6336c 12%, transparent); }
+.diff .hunk { color: var(--color-accent-700); background: var(--color-accent-100); }
+details > summary.btn { list-style: none; }
+details > summary.btn::-webkit-details-marker { display: none; }

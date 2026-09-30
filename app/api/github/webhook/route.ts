@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
 
   const event = request.headers.get("x-github-event");
   if (event === "ping") return NextResponse.json({ ok: true, pong: true });
+  if (event === "pull_request") return pullRequestEvent(JSON.parse(body), serviceKey);
   if (event !== "push") return NextResponse.json({ ok: true, ignored: event });
 
   const payload = JSON.parse(body) as PushPayload;
@@ -73,4 +74,30 @@ export async function POST(request: NextRequest) {
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   }
   return NextResponse.json({ ok: true, registered: rows.length });
+}
+
+type PullPayload = {
+  action?: string;
+  repository?: { full_name?: string };
+  pull_request?: { number: number; merged?: boolean };
+};
+
+/** Keeps the hub's review panel in step when a lead merges or closes on GitHub itself. */
+async function pullRequestEvent(payload: PullPayload, serviceKey: string) {
+  const repo = payload.repository?.full_name;
+  const number = payload.pull_request?.number;
+  if (!repo || !number) return NextResponse.json({ ok: true });
+  const status =
+    payload.action === "closed" ? (payload.pull_request?.merged ? "merged" : "closed") : payload.action === "reopened" ? "open" : null;
+  if (!status) return NextResponse.json({ ok: true, ignored: payload.action });
+
+  const supabase = createClient(SUPABASE_URL, serviceKey, { auth: { persistSession: false } });
+  const { data } = await supabase
+    .from("proposals")
+    .update({ status, updated_at: new Date().toISOString() })
+    .ilike("repo", repo)
+    .eq("pr_number", number)
+    .neq("status", status)
+    .select("id");
+  return NextResponse.json({ ok: true, updated: data?.length ?? 0 });
 }

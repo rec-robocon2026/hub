@@ -17,6 +17,7 @@ export type Member = {
   department: Discipline | null;
   approved_at: string | null;
   created_at: string;
+  focus_module_id?: string | null;
 };
 
 export type SubsystemCode = { code: string; name: string; description: string | null; sort: number };

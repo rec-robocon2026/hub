@@ -5,6 +5,9 @@ import { ActionForm, FormNotice, Submit } from "@/components/action-form";
 import { AssetFlags, Box, Empty, LaneGrid, PageHead, StatusTag, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
 import { GithubNotice } from "@/components/github-notice";
+import { ProposalList } from "@/components/proposal-list";
+import { WorkOnModule } from "@/components/work-on-module";
+import { loadProposals } from "@/lib/proposals";
 import { loadEvents, loadLineage, loadMembers, memberMap, moduleFolder } from "@/lib/data";
 import { DISCIPLINE_PATH, shortDate, STATUS_LABEL, timeAgo, vscodeClone } from "@/lib/format";
 import { laneStates } from "@/lib/health";
@@ -16,7 +19,7 @@ type ModuleRow = Module & { subsystems: Subsystem & { robots: Robot & { seasons:
 export default async function ModulePage({ params, searchParams }: PageProps<"/modules/[id]">) {
   const { id } = await params;
   const { gh, ghok } = await searchParams;
-  const { supabase, isLead } = await requireMember();
+  const { supabase, isLead, member: me } = await requireMember();
   const { data } = await supabase.from("modules").select("*, subsystems(*, robots(*, seasons(*)))").eq("id", id).maybeSingle();
   if (!data) notFound();
   const m = data as ModuleRow;
@@ -29,6 +32,12 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
   ]);
   const assets = (assetRows as AssetHealth[] | null) ?? [];
   const events = await loadEvents(supabase, { moduleIds: [m.id, ...lineage.map((l) => l.id)], limit: 100 });
+  const [requests, { data: workspaces }, { data: myKey }] = await Promise.all([
+    loadProposals(supabase, { moduleId: m.id, limit: 10 }),
+    supabase.from("workspaces").select("hostname, path, updated_at").eq("repo", season.repo ?? "").order("updated_at", { ascending: false }),
+    supabase.from("cli_keys").select("id").limit(1),
+  ]);
+  const liveRequests = requests.proposals.filter((p) => p.status === "open" || p.status === "changes_requested");
   const people = memberMap(members);
   const prefixOf = new Map([[m.id, season.prefix], ...lineage.map((l) => [l.id, l.prefix] as const)]);
   const robot = m.subsystems.robots;
@@ -111,6 +120,13 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
             />
           )}
 
+          {liveRequests.length > 0 && (
+            <>
+              <h4 className="section" style={{ margin: "40px 0 12px" }}>Requests waiting for a lead</h4>
+              <ProposalList proposals={liveRequests} people={people} moduleLabel={requests.moduleLabel} isLead={isLead} meId={me.id} emptyText="" />
+            </>
+          )}
+
           <h4 className="section" style={{ margin: "40px 0 12px" }}>History — every lane, one feed</h4>
           {events.length ? (
             <div className="table-wrap">
@@ -150,6 +166,16 @@ export default async function ModulePage({ params, searchParams }: PageProps<"/m
         </div>
 
         <div className="stack" style={{ gap: 20 }}>
+          {season.repo && season.is_active && (
+            <WorkOnModule
+              moduleId={m.id}
+              folder={folder}
+              repo={season.repo}
+              cloneUrl={vscodeClone(season.repo)}
+              workspaces={workspaces ?? []}
+              hasKey={Boolean(myKey?.length)}
+            />
+          )}
           <Box className="pad">
             <h5 style={{ margin: "0 0 10px" }}>Status</h5>
             <ActionForm action={setModuleStatus} className="inline-form">

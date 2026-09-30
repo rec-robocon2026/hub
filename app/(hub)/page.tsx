@@ -20,6 +20,13 @@ export default async function HomePage() {
   const approved = members.filter((m) => m.role === "member" || m.role === "lead");
   const pending = members.filter((m) => m.role === "pending").length;
   const gaps = bundle ? seasonGaps(bundle, seasonEvents, drives, isLead ? pending : 0) : [];
+  const { count: waiting } = await supabase.from("proposals").select("id", { count: "exact", head: true }).in("status", ["open", "changes_requested"]);
+  if (waiting)
+    gaps.unshift({
+      text: `${waiting} code ${waiting === 1 ? "change is" : "changes are"} waiting for review`,
+      detail: isLead ? "Approve & merge, or ask for changes" : "A lead approves these",
+      href: "/programming#review",
+    });
   const pastSeasons = seasons.filter((s) => !s.is_active);
 
   const moduleName = new Map(bundle?.modules.map((m) => [m.id, m.name]));

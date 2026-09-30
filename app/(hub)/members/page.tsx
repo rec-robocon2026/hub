@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { approveMember, rejectMember, removeMember, updateMember } from "@/app/(hub)/actions";
 import { ActionForm, FormNotice, Submit } from "@/components/action-form";
+import { TerminalKey } from "@/components/terminal-key";
 import { Box, Empty, PageHead, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
 import { loadMembers } from "@/lib/data";
@@ -14,6 +15,7 @@ const ROLE_ORDER: Role[] = ["lead", "member", "pending", "alum"];
 export default async function MembersPage() {
   const { supabase, isLead, member: me } = await requireMember();
   const members = await loadMembers(supabase);
+  const { data: myKey } = await supabase.from("cli_keys").select("created_at, last_used_at").maybeSingle();
   const pending = members.filter((m) => m.role === "pending");
   const rest = members
     .filter((m) => m.role !== "pending")
@@ -30,6 +32,10 @@ export default async function MembersPage() {
         Everyone signs in with Google and arrives pending. A lead approves them as a member or lead and sets their batch
         year. Members read everything and add things; leads also approve, delete and mark as-built. Alumni lose access.
       </p>
+
+      <section style={{ marginBottom: 44 }}>
+        <TerminalKey existing={myKey ?? null} />
+      </section>
 
       {isLead && (
         <section style={{ marginBottom: 44 }}>

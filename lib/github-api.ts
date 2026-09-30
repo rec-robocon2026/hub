@@ -1,4 +1,5 @@
 // Server-only: reads GITHUB_TOKEN. Never import from a client component.
+import { createHash } from "node:crypto";
 import type { RepoFile } from "@/lib/scaffold";
 
 // Talks to GitHub as the club: creates season repos, commits scaffold folders, installs the webhook.
@@ -63,8 +64,17 @@ export async function ensureRepo(name: string, description: string) {
   return { repo: full, created: true };
 }
 
-/** One commit on the default branch adding the files that don't exist yet. Existing files are never overwritten. */
-export async function commitFiles(repo: string, files: RepoFile[], message: string) {
+/** The sha git would give this content as a blob, to tell whether a file on GitHub already matches. */
+export function gitBlobSha(content: string | Buffer) {
+  const buf = typeof content === "string" ? Buffer.from(content) : content;
+  return createHash("sha1").update(`blob ${buf.length}\0`).update(buf).digest("hex");
+}
+
+/**
+ * One commit on the default branch adding the files that don't exist yet. Existing files are never
+ * overwritten — except `managed` paths (the hub's own tooling), which are updated when they differ.
+ */
+export async function commitFiles(repo: string, files: RepoFile[], message: string, managed: string[] = []) {
   // Right after creation GitHub can briefly 404 the new repo.
   let info = await gh<{ default_branch: string }>(`/repos/${repo}`);
   for (let i = 0; info.status === 404 && i < 4; i++) {
@@ -88,16 +98,18 @@ export async function commitFiles(repo: string, files: RepoFile[], message: stri
   const head = ref.data.object.sha;
 
   const commit = await gh<{ tree: { sha: string } }>(`/repos/${repo}/git/commits/${head}`);
-  const tree = await gh<{ tree: { path: string }[] }>(`/repos/${repo}/git/trees/${commit.data.tree.sha}?recursive=1`);
-  const existing = new Set((tree.data.tree ?? []).map((t) => t.path));
-  const todo = files.filter((f) => !existing.has(f.path));
+  const tree = await gh<{ tree: { path: string; sha: string }[] }>(`/repos/${repo}/git/trees/${commit.data.tree.sha}?recursive=1`);
+  const existing = new Map((tree.data.tree ?? []).map((t) => [t.path, t.sha]));
+  const todo = files.filter((f) =>
+    !existing.has(f.path) ? true : managed.includes(f.path) && existing.get(f.path) !== gitBlobSha(f.content),
+  );
   if (!todo.length) return { committed: 0 };
 
   const newTree = await gh<{ sha: string }>(`/repos/${repo}/git/trees`, {
     method: "POST",
     body: JSON.stringify({
       base_tree: commit.data.tree.sha,
-      tree: todo.map((f) => ({ path: f.path, mode: "100644", type: "blob", content: f.content })),
+      tree: todo.map((f) => ({ path: f.path, mode: f.executable ? "100755" : "100644", type: "blob", content: f.content })),
     }),
   });
   if (newTree.status !== 201) throw explain("Building the commit", newTree.status, newTree.data);
@@ -116,14 +128,22 @@ export async function commitFiles(repo: string, files: RepoFile[], message: stri
   return { committed: todo.length };
 }
 
-/** Install the push webhook pointing at the hub, once. */
+const HOOK_EVENTS = ["push", "pull_request"];
+
+/** Install the webhook pointing at the hub once (push + pull request events); upgrade an older push-only one. */
 export async function ensureWebhook(repo: string, url: string, secret: string) {
-  const hooks = await gh<{ config: { url?: string } }[]>(`/repos/${repo}/hooks`);
+  const hooks = await gh<{ id: number; events: string[]; config: { url?: string } }[]>(`/repos/${repo}/hooks`);
   if (hooks.status !== 200) throw explain("Reading webhooks", hooks.status, hooks.data);
-  if (hooks.data.some((h) => h.config.url === url)) return { created: false };
+  const mine = hooks.data.find((h) => h.config.url === url);
+  if (mine) {
+    if (HOOK_EVENTS.every((e) => mine.events.includes(e))) return { created: false };
+    const up = await gh(`/repos/${repo}/hooks/${mine.id}`, { method: "PATCH", body: JSON.stringify({ events: HOOK_EVENTS }) });
+    if (up.status !== 200) throw explain("Updating the webhook", up.status, up.data);
+    return { created: false };
+  }
   const res = await gh(`/repos/${repo}/hooks`, {
     method: "POST",
-    body: JSON.stringify({ name: "web", active: true, events: ["push"], config: { url, content_type: "json", secret, insecure_ssl: "0" } }),
+    body: JSON.stringify({ name: "web", active: true, events: HOOK_EVENTS, config: { url, content_type: "json", secret, insecure_ssl: "0" } }),
   });
   if (res.status !== 201) throw explain("Creating the webhook", res.status, res.data);
   return { created: true };
@@ -164,4 +184,123 @@ export async function replaceStubReadme(repo: string, content: string) {
 
 export function githubErrorMessage(e: unknown) {
   return e instanceof Error ? e.message : String(e);
+}
+
+// ─── Proposals: branch + commit + pull request on behalf of a member ───────────
+
+export type ProposedFile = { path: string; base64: string | null }; // null = deleted
+
+export async function branchHead(repo: string, branch: string) {
+  const ref = await gh<{ object: { sha: string } }>(`/repos/${repo}/git/ref/heads/${branch}`);
+  return ref.status === 200 ? ref.data.object.sha : null;
+}
+
+export async function defaultBranch(repo: string) {
+  const info = await gh<{ default_branch: string }>(`/repos/${repo}`);
+  if (info.status !== 200) throw explain(`Reading ${repo}`, info.status, info.data);
+  return info.data.default_branch;
+}
+
+/** Commit files on top of `parent`, then create or move `branch` to it. */
+export async function commitToBranch(opts: {
+  repo: string;
+  parent: string;
+  branch: string;
+  create: boolean;
+  files: ProposedFile[];
+  message: string;
+  author: { name: string; email: string };
+}) {
+  const { repo } = opts;
+  const parent = await gh<{ tree: { sha: string } }>(`/repos/${repo}/git/commits/${opts.parent}`);
+  if (parent.status !== 200) throw explain("Reading your starting point", parent.status, parent.data);
+
+  const entries = [];
+  for (const f of opts.files) {
+    if (f.base64 === null) {
+      entries.push({ path: f.path, mode: "100644", type: "blob", sha: null });
+      continue;
+    }
+    const blob = await gh<{ sha: string }>(`/repos/${repo}/git/blobs`, {
+      method: "POST",
+      body: JSON.stringify({ content: f.base64, encoding: "base64" }),
+    });
+    if (blob.status !== 201) throw explain(`Uploading ${f.path}`, blob.status, blob.data);
+    entries.push({ path: f.path, mode: "100644", type: "blob", sha: blob.data.sha });
+  }
+
+  const tree = await gh<{ sha: string }>(`/repos/${repo}/git/trees`, {
+    method: "POST",
+    body: JSON.stringify({ base_tree: parent.data.tree.sha, tree: entries }),
+  });
+  if (tree.status !== 201) throw explain("Building the commit", tree.status, tree.data);
+
+  const commit = await gh<{ sha: string }>(`/repos/${repo}/git/commits`, {
+    method: "POST",
+    body: JSON.stringify({ message: opts.message, tree: tree.data.sha, parents: [opts.parent], author: { ...opts.author, date: new Date().toISOString() } }),
+  });
+  if (commit.status !== 201) throw explain("Creating the commit", commit.status, commit.data);
+
+  const ref = opts.create
+    ? await gh(`/repos/${repo}/git/refs`, { method: "POST", body: JSON.stringify({ ref: `refs/heads/${opts.branch}`, sha: commit.data.sha }) })
+    : await gh(`/repos/${repo}/git/refs/heads/${opts.branch}`, { method: "PATCH", body: JSON.stringify({ sha: commit.data.sha, force: false }) });
+  if (ref.status !== 201 && ref.status !== 200) throw explain(`Updating branch ${opts.branch}`, ref.status, ref.data);
+  return commit.data.sha;
+}
+
+export type PullInfo = {
+  number: number;
+  html_url: string;
+  state: "open" | "closed";
+  merged: boolean;
+  mergeable: boolean | null;
+  additions: number;
+  deletions: number;
+  changed_files: number;
+  head: { ref: string; sha: string };
+};
+
+export async function openPull(repo: string, opts: { title: string; head: string; base: string; body: string }) {
+  const res = await gh<PullInfo>(`/repos/${repo}/pulls`, { method: "POST", body: JSON.stringify(opts) });
+  if (res.status !== 201) throw explain("Opening the pull request", res.status, res.data);
+  return res.data;
+}
+
+export async function getPull(repo: string, number: number) {
+  const res = await gh<PullInfo>(`/repos/${repo}/pulls/${number}`);
+  if (res.status !== 200) throw explain(`Reading pull request #${number}`, res.status, res.data);
+  return res.data;
+}
+
+export type PullFile = { filename: string; status: string; additions: number; deletions: number; patch?: string };
+
+export async function pullFiles(repo: string, number: number) {
+  const res = await gh<PullFile[]>(`/repos/${repo}/pulls/${number}/files?per_page=100`);
+  if (res.status !== 200) throw explain(`Reading the changes in #${number}`, res.status, res.data);
+  return res.data;
+}
+
+/** Merge commit (keeps each member's own commits and authorship in history). */
+export async function mergePull(repo: string, number: number, title: string, message: string) {
+  const res = await gh<{ merged: boolean; message?: string }>(`/repos/${repo}/pulls/${number}/merge`, {
+    method: "PUT",
+    body: JSON.stringify({ merge_method: "merge", commit_title: title, commit_message: message }),
+  });
+  if (res.status === 405 || res.status === 409)
+    throw new GithubError("GitHub can't merge this automatically (it conflicts with main). Resolve it on GitHub, or ask the member to run ./hub.sh start and propose again.");
+  if (res.status !== 200) throw explain(`Merging #${number}`, res.status, res.data);
+}
+
+export async function commentOnPull(repo: string, number: number, body: string) {
+  const res = await gh(`/repos/${repo}/issues/${number}/comments`, { method: "POST", body: JSON.stringify({ body }) });
+  if (res.status !== 201) throw explain(`Commenting on #${number}`, res.status, res.data);
+}
+
+export async function closePull(repo: string, number: number) {
+  const res = await gh(`/repos/${repo}/pulls/${number}`, { method: "PATCH", body: JSON.stringify({ state: "closed" }) });
+  if (res.status !== 200) throw explain(`Closing #${number}`, res.status, res.data);
+}
+
+export async function deleteBranch(repo: string, branch: string) {
+  await gh(`/repos/${repo}/git/refs/heads/${branch}`, { method: "DELETE" });
 }

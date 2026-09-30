@@ -2,7 +2,7 @@ import type { Lane } from "@/lib/types";
 
 // What the hub commits into the season repo (rec-robocon2026/RC26) when things are created.
 
-export type RepoFile = { path: string; content: string };
+export type RepoFile = { path: string; content: string; executable?: boolean };
 export type RobotInfo = { code: string; codename: string; description?: string | null };
 export type ModuleInfo = {
   robot: string;

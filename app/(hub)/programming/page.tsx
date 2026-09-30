@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { AddSection } from "@/components/add-section";
+import { ProposalList } from "@/components/proposal-list";
+import { loadProposals } from "@/lib/proposals";
 import { AssetFlags, Box, Corners, Code, Empty, PageHead, StatusTag, Tag } from "@/components/ui";
 import { displayName, requireMember } from "@/lib/auth";
 import { loadDrives, loadEvents, loadMembers, loadSeason, memberMap } from "@/lib/data";
@@ -11,9 +13,10 @@ export const metadata: Metadata = { title: "Programming" };
 
 export default async function ProgrammingPage({ searchParams }: PageProps<"/programming">) {
   const { module } = await searchParams;
-  const { supabase, isLead } = await requireMember();
+  const { supabase, isLead, member: me } = await requireMember();
   const [bundle, drives, members] = await Promise.all([loadSeason(supabase), loadDrives(supabase), loadMembers(supabase)]);
   const people = memberMap(members);
+  const review = await loadProposals(supabase, { live: true });
   const pushes = bundle ? await loadEvents(supabase, { moduleIds: bundle.modules.map((m) => m.id), source: "github", limit: 15 }) : [];
   const items = bundle?.assets.filter((a) => a.discipline === "prog") ?? [];
   const leads = members.filter((m) => m.role === "lead" && m.department === "prog");
@@ -63,16 +66,34 @@ export default async function ProgrammingPage({ searchParams }: PageProps<"/prog
         />
       )}
 
-      <h3 className="section" style={{ margin: "44px 0 6px" }}>The loop, end to end</h3>
+      <section id="review" className="section">
+        <h3 style={{ margin: "0 0 6px" }}>Awaiting review</h3>
+        <p className="text-muted section-intro">
+          {isLead
+            ? "Changes members sent with ./hub.sh propose. View the changes, then approve & merge — or ask for changes."
+            : "Your requests and everyone else's. A lead approves each one before it reaches the robot's code."}
+        </p>
+        <ProposalList
+          proposals={review.proposals}
+          people={people}
+          moduleLabel={review.moduleLabel}
+          isLead={isLead}
+          meId={me.id}
+          emptyText="When someone runs ./hub.sh propose, their change shows up here for a lead."
+        />
+      </section>
+
+      <h3 className="section" style={{ margin: "44px 0 6px" }}>How to work on the code</h3>
       <p className="text-muted section-intro">
-        You cannot push to <span className="mono">main</span> — the branch is protected, so GitHub rejects it. Approval is not a policy anyone has to remember; it is the only path that works.
+        You never push to GitHub yourself — members can only read the repo. The hub sends your changes as a request, and a lead
+        approves it. That is the only way into <span className="mono">main</span>.
       </p>
       <div className="grid" style={{ ["--min" as string]: "200px" }}>
         {[
-          ["01", "Open in VS Code", "The button above clones and opens. Nothing typed."],
-          ["02", "Branch, edit, commit", "Make a branch named after the change. Source Control lists what you changed; commit there."],
-          ["03", "Push the branch", "It shows up below within seconds, against the module folder you touched."],
-          ["04", "A lead reviews", "Open a pull request on GitHub. Merging needs a lead's approval — that's the only way into main."],
+          ["01", "Open from the hub", "Modules → your module → Open in VS Code. The first time it clones; after that it reopens your copy."],
+          ["02", "It gets the latest", "VS Code runs ./hub.sh start on open, so you're always on the newest version. Nothing to type."],
+          ["03", "Edit, then propose", 'Change files in your module\'s folder, then in the terminal:  ./hub.sh propose "what you did"'],
+          ["04", "A lead approves", "It appears under Awaiting review. Approved → merged into main. Asked for changes → edit and propose again."],
         ].map(([n, t, b], i) => (
           <Box key={n} tint={i === 3} className="pad">
             <div className="num">{n}</div>
@@ -150,11 +171,9 @@ export default async function ProgrammingPage({ searchParams }: PageProps<"/prog
       <h3 className="section" style={{ margin: "44px 0 6px" }}>Commands</h3>
       <p className="text-muted section-intro">The everyday ones. Keep the real versions in each README so they can&apos;t drift.</p>
       <div className="grid" style={{ ["--min" as string]: "320px" }}>
-        <Code label="Start a change">{`git switch -c ${bundle?.season.prefix.toLowerCase() ?? "rc26"}-r1-drv-fix-encoder
-# …edit…
-git add -A
-git commit -m "fw: fix encoder direction on rear-left"
-git push -u origin HEAD`}</Code>
+        <Code label="Every day, in the VS Code terminal">{`./hub.sh start                       # latest version (VS Code does this on open)
+./hub.sh propose "fix servo limits"   # send your changes to a lead
+./hub.sh status                       # what's waiting, what a lead said`}</Code>
         <Code label="Build and flash (PlatformIO)">{`cd R1/<module>/firmware
 pio run                        # build only
 pio run -t upload              # flash the board

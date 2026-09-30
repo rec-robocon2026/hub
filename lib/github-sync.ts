@@ -2,6 +2,7 @@
 // comes back as a note so the hub record is still saved.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { commitFiles, ensureRepo, ensureWebhook, githubErrorMessage, githubOrg, isGithubConfigured, protectMain, replaceStubReadme } from "@/lib/github-api";
+import { toolingFiles, TOOLING_PATHS } from "@/lib/hub-sh";
 import { moduleFiles, robotReadme, seasonFiles, seasonRepoName, type RepoFile } from "@/lib/scaffold";
 import type { Lane, Module, Robot, Season, Subsystem } from "@/lib/types";
 
@@ -38,6 +39,7 @@ export async function syncSeason(supabase: SupabaseClient, seasonId: string, ori
     }
 
     const origins = await carriedLabels(supabase, (mods ?? []).map((m) => m.carried_from));
+    const hubUrl = process.env.SITE_URL || origin || "https://hub-wus5.vercel.app";
     const files: RepoFile[] = [
       ...seasonFiles(season.prefix, season.year, robotList, process.env.SITE_URL || origin || undefined),
       ...(mods ?? []).map((m) => {
@@ -46,7 +48,8 @@ export async function syncSeason(supabase: SupabaseClient, seasonId: string, ori
         return moduleFiles(season.prefix, moduleInfo(m, robot?.code ?? "R1", sub?.code ?? "", origins.get(m.carried_from ?? "")));
       }).flat(),
     ];
-    const { committed } = await commitFiles(repo, files, `hub: scaffold ${season.prefix}`);
+    files.push(...toolingFiles(hubUrl));
+    const { committed } = await commitFiles(repo, files, `hub: scaffold ${season.prefix}`, TOOLING_PATHS);
     const readme = await replaceStubReadme(repo, files[0].content);
 
     const notes = [

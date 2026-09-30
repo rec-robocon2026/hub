@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isConfigured, SUPABASE_KEY, SUPABASE_URL } from "@/lib/supabase/env";
 
-const PUBLIC_PATHS = ["/login", "/auth", "/api/github"];
+const PUBLIC_PATHS = ["/login", "/auth", "/api/github", "/api/cli"];
 
 // Refreshes the Supabase session on every navigation and sends signed-out visitors to /login.
 // Role checks (pending / member / lead) happen in the pages, next to the data.
