@@ -1,0 +1,134 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { carryModule } from "@/app/(hub)/actions";
+import { ActionForm, FormNotice, Submit } from "@/components/action-form";
+import { Box, Empty, LaneGrid, LinkCard, PrimaryLink, Tag } from "@/components/ui";
+import { displayName, requireMember } from "@/lib/auth";
+import { loadEvents, loadLibrary, loadMembers, loadSeason, memberMap } from "@/lib/data";
+import { timeAgo } from "@/lib/format";
+import { isStale, laneStates } from "@/lib/health";
+
+export const metadata: Metadata = { title: "Modules" };
+
+export default async function ModulesPage({ searchParams }: PageProps<"/modules">) {
+  const { season: seasonParam } = await searchParams;
+  const { supabase, isLead } = await requireMember();
+  const bundle = await loadSeason(supabase, seasonParam ? Number(seasonParam) : undefined);
+  const [library, members] = await Promise.all([loadLibrary(supabase, bundle), loadMembers(supabase)]);
+  const people = memberMap(members);
+  const events = bundle ? await loadEvents(supabase, { moduleIds: bundle.modules.map((m) => m.id), limit: 500 }) : [];
+  const codeOf = new Map(bundle?.subsystems.map((s) => [s.id, s.code]));
+  const canAdd = !!bundle?.season.is_active && bundle.subsystems.length > 0;
+
+  return (
+    <main className="page">
+      <div className="kicker">
+        {bundle ? `Season ${bundle.season.year}${bundle.season.repo ? ` · ${bundle.season.repo}` : ""}` : "No active season"}
+      </div>
+      <h1 style={{ margin: "0 0 8px", fontSize: "clamp(32px, 4vw, 48px)" }}>Modules</h1>
+      <p className="lede">
+        One physical block of the robot, one folder in the repo. Schematic, PCB, firmware, the mechanical exports that
+        mount it and its simulation meshes sit together, so a module is reviewable as a unit.
+      </p>
+      <p className="text-muted lede" style={{ marginBottom: 20 }}>
+        Lanes fill in from what&apos;s recorded here and from pushes to the season repo — so a module&apos;s state is what
+        actually exists, not what someone remembered to update.
+      </p>
+      {canAdd && (
+        <div style={{ marginBottom: 36 }}>
+          <PrimaryLink href="/modules/new">New module</PrimaryLink>
+        </div>
+      )}
+
+      {!bundle ? (
+        <Empty
+          title="No season yet"
+          body="Modules belong to a season's subsystems. A lead starts the season first."
+          action={isLead ? <PrimaryLink href="/season/new">Start a new season</PrimaryLink> : undefined}
+        />
+      ) : bundle.subsystems.length === 0 ? (
+        <Empty
+          title="No subsystems yet"
+          body="Modules hang off subsystems. A lead adds them on the season page."
+          action={<Link className="btn btn-secondary" href={`/season/${bundle.season.year}`}>Go to the season</Link>}
+        />
+      ) : bundle.modules.length === 0 ? (
+        <Empty
+          title="No modules yet"
+          body="Declare the boards and blocks you know you need — they can be added mid-season too. Or socket in a proven one from the library below."
+          action={canAdd ? <PrimaryLink href="/modules/new">New module</PrimaryLink> : undefined}
+        />
+      ) : (
+        <div className="grid" style={{ ["--min" as string]: "270px", marginBottom: 48 }}>
+          {bundle.modules.map((m) => {
+            const last = events.find((e) => e.module_id === m.id);
+            const items = bundle.assets.filter((a) => a.module_id === m.id);
+            const flagged = items.filter((a) => !a.name_ok || a.missing_exports).length;
+            return (
+              <LinkCard key={m.id} href={`/modules/${m.id}`}>
+                <div className="row" style={{ justifyContent: "space-between" }}>
+                  <div className="mono accent-text" style={{ fontSize: 12 }}>modules/{m.slug}/</div>
+                  <Tag kind="neutral">{codeOf.get(m.subsystem_id)}</Tag>
+                </div>
+                <div className="card-title big">{m.name}</div>
+                <LaneGrid lanes={laneStates(m, bundle.assets, events)} />
+                <div className="text-muted" style={{ fontSize: 12, lineHeight: 1.5 }}>
+                  {last
+                    ? `${last.action} — ${last.actor_name ?? displayName(people.get(last.actor_id ?? ""))}, ${timeAgo(last.created_at)}`
+                    : "nothing yet"}
+                </div>
+                <div className="row" style={{ gap: 4 }}>
+                  {m.status === "as_built" && <Tag kind="accent">AS-BUILT</Tag>}
+                  {m.carried_from && <Tag>CARRIED</Tag>}
+                  {m.is_proven && <Tag>PROVEN</Tag>}
+                  {flagged > 0 && <Tag kind="warn">{flagged} FLAGGED</Tag>}
+                  {items.length === 0 && <Tag kind="warn">EMPTY</Tag>}
+                  {isStale(m, bundle.assets, events) && <Tag kind="warn">STALE</Tag>}
+                </div>
+              </LinkCard>
+            );
+          })}
+        </div>
+      )}
+
+      <h3 className="section" style={{ margin: "0 0 6px" }}>Reuse library</h3>
+      <p className="text-muted section-intro">
+        Modules that worked. Socketing one into this season copies its lanes and <span className="mono">parts.yml</span> and
+        keeps its history linked, so you start from a proven board instead of a blank folder.
+      </p>
+      {library.length ? (
+        <div className="grid" style={{ ["--min" as string]: "280px" }}>
+          {library.map((m) => (
+            <Box key={m.id} className="pad">
+              <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline" }}>
+                <div className="mono accent-text" style={{ fontSize: 12 }}>{m.origin}</div>
+                <Tag kind="neutral">{m.code}</Tag>
+              </div>
+              <Link href={`/modules/${m.id}`} style={{ color: "inherit", textDecoration: "none" }}>
+                <div className="card-title big" style={{ margin: "4px 0 8px" }}>{m.name}</div>
+              </Link>
+              <div className="text-muted small" style={{ lineHeight: 1.55, marginBottom: 12 }}>{m.proven_note ?? m.description ?? "No note."}</div>
+              <div className="row" style={{ gap: 6, marginBottom: 14 }}>
+                {m.lanes.map((l) => (
+                  <Tag key={l} kind="neutral">{l}</Tag>
+                ))}
+              </div>
+              {canAdd && (
+                <ActionForm action={carryModule}>
+                  <input type="hidden" name="module_id" value={m.id} />
+                  <Submit className="btn-block" pendingText="Socketing…">Socket into {bundle?.season.prefix}</Submit>
+                  <div style={{ marginTop: 6 }}><FormNotice /></div>
+                </ActionForm>
+              )}
+            </Box>
+          ))}
+        </div>
+      ) : (
+        <Empty
+          title="The library is empty"
+          body="When a module has proven itself, a lead marks it proven from its page. It then shows up here for every future season."
+        />
+      )}
+    </main>
+  );
+}
